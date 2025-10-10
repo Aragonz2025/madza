@@ -21,21 +21,19 @@ import {
   CheckCircle,
   Schedule,
   Cancel,
-  AutoAwesome,
-  Psychology,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 
 interface DashboardMetrics {
-  totalPatients: number;
-  totalClaims: number;
-  approvedClaims: number;
-  pendingClaims: number;
-  deniedClaims: number;
-  averageProcessingTime: string;
-  aiAccuracyRate: string;
-  systemUptime: string;
+  total_patients: number;
+  total_claims: number;
+  approved_claims: number;
+  pending_claims: number;
+  denied_claims: number;
+  average_processing_time: string;
+  ai_accuracy_rate: string;
+  system_uptime: string;
 }
 
 interface RecentActivity {
@@ -68,14 +66,14 @@ const Dashboard: React.FC = () => {
       console.error('Error fetching dashboard data:', error);
       // Set empty data on error instead of mock data
       setMetrics({
-        totalPatients: 0,
-        totalClaims: 0,
-        approvedClaims: 0,
-        pendingClaims: 0,
-        deniedClaims: 0,
-        averageProcessingTime: 'N/A',
-        aiAccuracyRate: 'N/A',
-        systemUptime: 'N/A',
+        total_patients: 0,
+        total_claims: 0,
+        approved_claims: 0,
+        pending_claims: 0,
+        denied_claims: 0,
+        average_processing_time: 'N/A',
+        ai_accuracy_rate: 'N/A',
+        system_uptime: 'N/A',
       });
       setRecentActivity([]);
     } finally {
@@ -94,7 +92,7 @@ const Dashboard: React.FC = () => {
       case 'denial':
         return <Cancel />;
       default:
-        return <AutoAwesome />;
+        return <Assignment />;
     }
   };
 
@@ -131,8 +129,8 @@ const Dashboard: React.FC = () => {
         </Typography>
       </motion.div>
 
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(4, 1fr)' }, gap: 3 }}>
-        {/* Key Metrics Cards */}
+      {/* Key Metrics Cards */}
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(5, 1fr)' }, gap: 3, mb: 4 }}>
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -147,10 +145,10 @@ const Dashboard: React.FC = () => {
                 <Typography variant="h6">Total Patients</Typography>
               </Box>
               <Typography variant="h3" sx={{ color: 'primary.main', fontWeight: 700 }}>
-                {metrics?.totalPatients || 0}
+                {metrics?.total_patients || 0}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                +12% from last month
+                {metrics?.total_patients ? 'Active patients' : 'No patients registered'}
               </Typography>
             </CardContent>
           </Card>
@@ -170,10 +168,10 @@ const Dashboard: React.FC = () => {
                 <Typography variant="h6">Total Claims</Typography>
               </Box>
               <Typography variant="h3" sx={{ color: 'secondary.main', fontWeight: 700 }}>
-                {metrics?.totalClaims || 0}
+                {metrics?.total_claims || 0}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                +8% from last month
+                {metrics?.total_claims ? 'Total claims processed' : 'No claims yet'}
               </Typography>
             </CardContent>
           </Card>
@@ -193,11 +191,11 @@ const Dashboard: React.FC = () => {
                 <Typography variant="h6">Approved Claims</Typography>
               </Box>
               <Typography variant="h3" sx={{ color: 'success.main', fontWeight: 700 }}>
-                {metrics?.approvedClaims || 0}
+                {metrics?.approved_claims || 0}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                {metrics?.approvedClaims && metrics?.totalClaims 
-                  ? `${Math.round((metrics.approvedClaims / metrics.totalClaims) * 100)}% approval rate`
+                {metrics?.approved_claims && metrics?.total_claims 
+                  ? `${Math.round((metrics.approved_claims / metrics.total_claims) * 100)}% approval rate`
                   : '0% approval rate'
                 }
               </Typography>
@@ -219,149 +217,103 @@ const Dashboard: React.FC = () => {
                 <Typography variant="h6">Pending Claims</Typography>
               </Box>
               <Typography variant="h3" sx={{ color: 'warning.main', fontWeight: 700 }}>
-                {metrics?.pendingClaims || 0}
+                {metrics?.pending_claims || 0}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Avg. processing: {metrics?.averageProcessingTime || 'N/A'}
+                Avg. processing: {metrics?.average_processing_time || 'N/A'}
               </Typography>
             </CardContent>
           </Card>
         </motion.div>
 
-        {/* AI Performance Metrics */}
-        <Box>
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-          >
-            <Card sx={{ height: '100%' }}>
-              <CardContent>
-                <Typography variant="h5" sx={{ mb: 3, display: 'flex', alignItems: 'center' }}>
-                  <Psychology sx={{ mr: 1, color: 'primary.main' }} />
-                  AI Performance Metrics
-                </Typography>
-                
-                <Box sx={{ mb: 3 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body2">Accuracy Rate</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                      {metrics?.aiAccuracyRate || 'N/A'}
-                    </Typography>
-                  </Box>
-                  <LinearProgress
-                    variant="determinate"
-                    value={94.2}
-                    sx={{
-                      height: 8,
-                      borderRadius: 4,
-                      bgcolor: 'rgba(0, 212, 255, 0.1)',
-                      '& .MuiLinearProgress-bar': {
-                        background: 'linear-gradient(45deg, #00d4ff, #ff6b6b)',
-                      },
-                    }}
-                  />
-                </Box>
-
-                <Box sx={{ mb: 3 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body2">System Uptime</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                      {metrics?.systemUptime || 'N/A'}
-                    </Typography>
-                  </Box>
-                  <LinearProgress
-                    variant="determinate"
-                    value={99.8}
-                    sx={{
-                      height: 8,
-                      borderRadius: 4,
-                      bgcolor: 'rgba(0, 212, 255, 0.1)',
-                      '& .MuiLinearProgress-bar': {
-                        background: 'linear-gradient(45deg, #00d4ff, #ff6b6b)',
-                      },
-                    }}
-                  />
-                </Box>
-
-                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                  <Chip
-                    label="AWS Bedrock Active"
-                    color="primary"
-                    size="small"
-                    icon={<AutoAwesome />}
-                  />
-                  <Chip
-                    label="Multi-Agent System"
-                    color="secondary"
-                    size="small"
-                  />
-                  <Chip
-                    label="Real-time Processing"
-                    color="success"
-                    size="small"
-                  />
-                </Box>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </Box>
-
-        {/* Recent Activity */}
-        <Box>
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-          >
-            <Card sx={{ height: '100%' }}>
-              <CardContent>
-                <Typography variant="h5" sx={{ mb: 3, display: 'flex', alignItems: 'center' }}>
-                  <TrendingUp sx={{ mr: 1, color: 'primary.main' }} />
-                  Recent Activity
-                </Typography>
-                
-                <List>
-                  {recentActivity.map((activity, index) => (
-                    <motion.div
-                      key={activity.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4, delay: 0.7 + index * 0.1 }}
-                    >
-                      <ListItem sx={{ px: 0 }}>
-                        <ListItemIcon>
-                          <Avatar
-                            sx={{
-                              bgcolor: getStatusColor(activity.status) + '.main',
-                              width: 32,
-                              height: 32,
-                            }}
-                          >
-                            {getActivityIcon(activity.type)}
-                          </Avatar>
-                        </ListItemIcon>
-                        <ListItemText
-                          primary={activity.description}
-                          secondary={activity.timestamp}
-                          primaryTypographyProps={{
-                            variant: 'body2',
-                            fontWeight: 500,
-                          }}
-                          secondaryTypographyProps={{
-                            variant: 'caption',
-                            color: 'text.secondary',
-                          }}
-                        />
-                      </ListItem>
-                    </motion.div>
-                  ))}
-                </List>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </Box>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+        >
+          <Card sx={{ height: '100%' }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <Avatar sx={{ bgcolor: 'error.main', mr: 2 }}>
+                  <Cancel />
+                </Avatar>
+                <Typography variant="h6">Denied Claims</Typography>
+              </Box>
+              <Typography variant="h3" sx={{ color: 'error.main', fontWeight: 700 }}>
+                {metrics?.denied_claims || 0}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {metrics?.denied_claims && metrics?.total_claims 
+                  ? `${Math.round((metrics.denied_claims / metrics.total_claims) * 100)}% denial rate`
+                  : '0% denial rate'
+                }
+              </Typography>
+            </CardContent>
+          </Card>
+        </motion.div>
       </Box>
+
+      {/* Recent Activity - Full Width */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.5 }}
+      >
+        <Card>
+          <CardContent>
+            <Typography variant="h5" sx={{ mb: 3, display: 'flex', alignItems: 'center' }}>
+              <TrendingUp sx={{ mr: 1, color: 'primary.main' }} />
+              Recent Activity
+            </Typography>
+            
+            <List sx={{ maxHeight: 500, overflow: 'auto' }}>
+              {recentActivity.map((activity, index) => (
+                <motion.div
+                  key={activity.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.6 + index * 0.1 }}
+                >
+                  <ListItem sx={{ px: 0, py: 1.5 }}>
+                    <ListItemIcon>
+                      <Avatar
+                        sx={{
+                          bgcolor: getStatusColor(activity.status) + '.main',
+                          width: 40,
+                          height: 40,
+                        }}
+                      >
+                        {getActivityIcon(activity.type)}
+                      </Avatar>
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={activity.description}
+                      secondary={activity.timestamp}
+                      primaryTypographyProps={{
+                        variant: 'body1',
+                        fontWeight: 500,
+                      }}
+                      secondaryTypographyProps={{
+                        variant: 'body2',
+                        color: 'text.secondary',
+                      }}
+                    />
+                  </ListItem>
+                </motion.div>
+              ))}
+              {recentActivity.length === 0 && (
+                <ListItem>
+                  <ListItemText
+                    primary="No recent activity"
+                    secondary="Activity will appear here as the system is used"
+                    sx={{ textAlign: 'center', py: 4 }}
+                  />
+                </ListItem>
+              )}
+            </List>
+          </CardContent>
+        </Card>
+      </motion.div>
     </Box>
   );
 };

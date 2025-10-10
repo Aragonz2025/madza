@@ -120,6 +120,14 @@ export function parseClaimAnalysis(aiAnalysis: any): ParsedAIAnalysis | null {
   try {
     let jsonString = aiAnalysis.analysis;
     
+    // Handle <reasoning> tags - extract JSON after reasoning
+    if (jsonString.includes('<reasoning>')) {
+      const reasoningEnd = jsonString.indexOf('</reasoning>');
+      if (reasoningEnd !== -1) {
+        jsonString = jsonString.substring(reasoningEnd + 11).trim();
+      }
+    }
+    
     // Extract JSON from markdown format if present
     if (jsonString.includes('```json')) {
       const jsonStart = jsonString.indexOf('```json') + 7;

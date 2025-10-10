@@ -66,71 +66,32 @@ const Observability: React.FC = () => {
     try {
       const [metricsResponse, alertsResponse] = await Promise.all([
         axios.get('http://localhost:5001/api/observability/metrics'),
-        // Mock alerts data
-        Promise.resolve({
-          data: [
-            {
-              id: '1',
-              type: 'info',
-              message: 'AI accuracy rate improved to 94.2%',
-              timestamp: '2024-01-15T10:30:00Z',
-              resolved: true,
-            },
-            {
-              id: '2',
-              type: 'warning',
-              message: 'High volume of pending claims detected',
-              timestamp: '2024-01-15T09:15:00Z',
-              resolved: false,
-            },
-            {
-              id: '3',
-              type: 'error',
-              message: 'Bedrock service temporarily unavailable',
-              timestamp: '2024-01-15T08:45:00Z',
-              resolved: true,
-            },
-          ],
-        }),
+        axios.get('http://localhost:5001/api/observability/alerts'),
       ]);
 
       setMetrics(metricsResponse.data as Metrics);
       setAlerts(alertsResponse.data as SystemAlert[]);
     } catch (error) {
       console.error('Error fetching observability data:', error);
-      // Set mock data for demo
+      // Set fallback data if API fails
       setMetrics({
-        total_patients: 150,
-        total_claims: 89,
-        approved_claims: 67,
-        pending_claims: 15,
-        denied_claims: 7,
-        average_processing_time: '2.3 days',
-        ai_accuracy_rate: '94.2%',
-        system_uptime: '99.8%',
+        total_patients: 0,
+        total_claims: 0,
+        approved_claims: 0,
+        pending_claims: 0,
+        denied_claims: 0,
+        average_processing_time: 'N/A',
+        ai_accuracy_rate: 'N/A',
+        system_uptime: 'N/A',
         last_updated: new Date().toISOString(),
       });
       setAlerts([
         {
-          id: '1',
-          type: 'info',
-          message: 'AI accuracy rate improved to 94.2%',
-          timestamp: '2024-01-15T10:30:00Z',
-          resolved: true,
-        },
-        {
-          id: '2',
-          type: 'warning',
-          message: 'High volume of pending claims detected',
-          timestamp: '2024-01-15T09:15:00Z',
-          resolved: false,
-        },
-        {
-          id: '3',
+          id: 'api_error',
           type: 'error',
-          message: 'Bedrock service temporarily unavailable',
-          timestamp: '2024-01-15T08:45:00Z',
-          resolved: true,
+          message: 'Unable to fetch system data - API connection failed',
+          timestamp: new Date().toISOString(),
+          resolved: false,
         },
       ]);
     } finally {
@@ -205,7 +166,7 @@ const Observability: React.FC = () => {
                   {metrics?.total_patients || 0}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  +12% from last month
+                  {(metrics?.total_patients || 0) > 0 ? 'Active patients' : 'No patients registered'}
                 </Typography>
               </CardContent>
             </Card>
@@ -228,7 +189,7 @@ const Observability: React.FC = () => {
                   {metrics?.total_claims || 0}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  +8% from last month
+                  {(metrics?.total_claims || 0) > 0 ? 'Total processed' : 'No claims processed'}
                 </Typography>
               </CardContent>
             </Card>

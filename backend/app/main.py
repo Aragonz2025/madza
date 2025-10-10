@@ -107,6 +107,37 @@ def process_claim():
                 approval_required=result.get('approval_required', False)
             )
             
+            # Set appropriate timestamps based on status
+            from datetime import datetime
+            if result.get('status') == 'approved':
+                claim.approved_at = datetime.utcnow()
+            elif result.get('status') == 'denied':
+                claim.denied_at = datetime.utcnow()
+                # Extract denial reason from AI analysis if available
+                try:
+                    ai_analysis = result.get('ai_analysis', {})
+                    if isinstance(ai_analysis, dict) and 'analysis' in ai_analysis:
+                        analysis_text = ai_analysis['analysis']
+                        if '<reasoning>' in analysis_text:
+                            reasoning_end = analysis_text.find('</reasoning>')
+                            if reasoning_end != -1:
+                                json_string = analysis_text[reasoning_end + 11:].strip()
+                                first_brace = json_string.find('{')
+                                last_brace = json_string.rfind('}')
+                                if first_brace != -1 and last_brace != -1 and last_brace > first_brace:
+                                    json_string = json_string[first_brace:last_brace + 1]
+                                    import json
+                                    parsed_analysis = json.loads(json_string)
+                                    if isinstance(parsed_analysis, dict):
+                                        validation = parsed_analysis.get('validation', {})
+                                        issues = validation.get('issues', [])
+                                        if issues:
+                                            claim.denial_reason = issues[0]
+                                        else:
+                                            claim.denial_reason = 'AI analysis indicates denial'
+                except:
+                    claim.denial_reason = 'AI analysis indicates denial'
+            
             claim_id = claim_service.create_claim(claim)
             
             return jsonify({
@@ -115,7 +146,10 @@ def process_claim():
                 "status": claim.status,
                 "approval_required": claim.approval_required,
                 "ai_analysis": result.get('ai_analysis', {}),
-                "next_steps": result.get('next_steps', [])
+                "next_steps": result.get('next_steps', []),
+                "approved_at": claim.approved_at.isoformat() if claim.approved_at else None,
+                "denied_at": claim.denied_at.isoformat() if claim.denied_at else None,
+                "denial_reason": claim.denial_reason
             }), 201
         else:
             return jsonify({"error": result.get('error', 'Claim processing failed')}), 400
@@ -184,6 +218,15 @@ def get_agent_status():
     try:
         status = bedrock_service.get_agent_status()
         return jsonify(status), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/observability/alerts', methods=['GET'])
+def get_system_alerts():
+    """Get system alerts and notifications"""
+    try:
+        alerts = bedrock_service.get_system_alerts()
+        return jsonify(alerts), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -326,11 +369,17 @@ def update_claim(claim_id):
         result = claim_service.update_claim(claim_id, data)
         
         if result['success']:
-            return jsonify({
+            response_data = {
                 "success": True,
-                "message": "Claim updated successfully",
+                "message": result.get('message', 'Claim updated successfully'),
                 "claim": result['claim'].to_dict()
-            }), 200
+            }
+            
+            # Include AI processing information if available
+            if 'ai_processed' in result:
+                response_data['ai_processed'] = result['ai_processed']
+            
+            return jsonify(response_data), 200
         else:
             return jsonify({"error": result.get('error', 'Update failed')}), 400
             

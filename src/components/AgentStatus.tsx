@@ -37,6 +37,12 @@ interface AgentStatus {
     status: string;
     last_used: string;
     success_rate: string;
+    performance?: {
+      requests_per_minute: number;
+      average_response_time: string;
+      memory_usage: string;
+      cpu_usage: string;
+    };
   };
 }
 
@@ -295,7 +301,7 @@ const AgentStatus: React.FC = () => {
                       <Box sx={{ textAlign: 'center' }}>
                         <Speed sx={{ color: 'primary.main', mb: 1 }} />
                         <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                          {agent.performance.requests_per_minute}
+                          {status?.performance?.requests_per_minute || agent.performance.requests_per_minute}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
                           Requests/min
@@ -304,7 +310,7 @@ const AgentStatus: React.FC = () => {
                       <Box sx={{ textAlign: 'center' }}>
                         <Timeline sx={{ color: 'secondary.main', mb: 1 }} />
                         <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                          {agent.performance.average_response_time}
+                          {status?.performance?.average_response_time || agent.performance.average_response_time}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
                           Avg Response
@@ -313,7 +319,7 @@ const AgentStatus: React.FC = () => {
                       <Box sx={{ textAlign: 'center' }}>
                         <Memory sx={{ color: 'warning.main', mb: 1 }} />
                         <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                          {agent.performance.memory_usage}
+                          {status?.performance?.memory_usage || agent.performance.memory_usage}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
                           Memory
@@ -322,7 +328,7 @@ const AgentStatus: React.FC = () => {
                       <Box sx={{ textAlign: 'center' }}>
                         <TrendingUp sx={{ color: 'success.main', mb: 1 }} />
                         <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                          {agent.performance.cpu_usage}
+                          {status?.performance?.cpu_usage || agent.performance.cpu_usage}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
                           CPU Usage
