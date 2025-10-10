@@ -15,6 +15,7 @@ import {
   PersonAdd as PersonAddIcon,
   Assignment as AssignmentIcon,
   ManageAccounts as ManageAccountsIcon,
+  People as PeopleIcon,
   Analytics as AnalyticsIcon,
   Psychology as PsychologyIcon,
   AutoAwesome as AutoAwesomeIcon,
@@ -38,6 +39,12 @@ const navigationItems = [
     label: 'Patient Registration',
     icon: <PersonAddIcon />,
     description: 'AI-Powered Registration',
+  },
+  {
+    id: 'patient-management',
+    label: 'Patient Management',
+    icon: <PeopleIcon />,
+    description: 'View & Manage Patients',
   },
   {
     id: 'claim-processing',

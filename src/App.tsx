@@ -6,6 +6,7 @@ import { Box } from '@mui/material';
 import LeftNavigation from './components/LeftNavigation';
 import Dashboard from './components/Dashboard';
 import PatientRegistration from './components/PatientRegistration';
+import PatientManagement from './components/PatientManagement';
 import ClaimProcessing from './components/ClaimProcessing';
 import ClaimManagement from './components/ClaimManagement';
 import Observability from './components/Observability';
@@ -91,6 +92,8 @@ function App() {
         return <Dashboard />;
       case 'patient-registration':
         return <PatientRegistration />;
+      case 'patient-management':
+        return <PatientManagement />;
       case 'claim-processing':
         return <ClaimProcessing />;
       case 'claim-management':

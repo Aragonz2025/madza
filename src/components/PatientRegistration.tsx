@@ -25,7 +25,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import axios from 'axios';
-import { parseAIAnalysis, isPatientAnalysis } from '../utils/aiAnalysisParser';
+import { parsePatientAnalysis, isPatientAnalysis } from '../utils/aiAnalysisParser';
 
 interface PatientFormData {
   firstName: string;
@@ -206,7 +206,7 @@ const PatientRegistration: React.FC = () => {
                     {result?.ai_analysis && result?.ai_analysis?.analysis ? (
                       <Box>
                         {(() => {
-                          const analysis = parseAIAnalysis(result.ai_analysis);
+                          const analysis = parsePatientAnalysis(result.ai_analysis);
                           
                           if (!analysis) {
                             return (
@@ -224,11 +224,11 @@ const PatientRegistration: React.FC = () => {
                             );
                           }
                           
-                          // Extract patient-specific fields
-                          const riskAssessment = analysis.risk_assessment;
-                          const dataQuality = analysis.data_quality_analysis;
-                          const recommendations = analysis.verification_recommendations;
-                          const fraudIndicators = analysis.potential_fraud_indicators;
+                          // Extract patient-specific fields - handle both camelCase and snake_case
+                          const riskAssessment = (analysis as any).riskAssessment || (analysis as any).risk_assessment;
+                          const dataQuality = (analysis as any).dataQualityAnalysis || (analysis as any).data_quality_analysis;
+                          const recommendations = (analysis as any).verificationRecommendations || (analysis as any).verification_recommendations;
+                          const fraudIndicators = (analysis as any).potentialFraudIndicators || (analysis as any).potential_fraud_indicators;
                             
                             return (
                               <Box>
@@ -248,12 +248,13 @@ const PatientRegistration: React.FC = () => {
                                       Risk Assessment
                                     </Typography>
                                     <Chip
-                                      label={`Score: ${riskAssessment.insurance_eligibility_score || riskAssessment.insurance_eligibility || riskAssessment.risk_level || 'Low Risk'}`}
-                                      color={typeof riskAssessment.insurance_eligibility_score === 'number' && riskAssessment.insurance_eligibility_score > 80 ? 'success' : typeof riskAssessment.insurance_eligibility_score === 'number' && riskAssessment.insurance_eligibility_score > 60 ? 'warning' : 'error'}
+                                      label={`${(riskAssessment as any).insuranceEligibility || (riskAssessment as any).insurance_eligibility || 'Unknown'} - ${(riskAssessment as any).riskLevel || (riskAssessment as any).risk_level || 'Low Risk'}`}
+                                      color={(riskAssessment as any).insuranceEligibility === 'Eligible' || (riskAssessment as any).insurance_eligibility === 'Eligible' ? 'success' : 
+                                             (riskAssessment as any).insuranceEligibility === 'Pending Review' || (riskAssessment as any).insurance_eligibility === 'Pending Review' ? 'warning' : 'error'}
                                       sx={{ mb: 1 }}
                                     />
                                     <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                                      {riskAssessment.eligibility_rationale || riskAssessment.notes || riskAssessment.comments || 'Risk assessment completed'}
+                                      {(riskAssessment as any).justification || (riskAssessment as any).eligibility_rationale || (riskAssessment as any).notes || (riskAssessment as any).comments || 'Risk assessment completed'}
                                     </Typography>
                                   </Paper>
                                 )}
@@ -274,12 +275,14 @@ const PatientRegistration: React.FC = () => {
                                       Data Quality Analysis
                                     </Typography>
                                     <Chip
-                                      label={`Score: ${dataQuality.overall_quality_score || dataQuality.overallQuality || dataQuality.overall_comments || 'Good Quality'}`}
-                                      color={typeof dataQuality.overall_quality_score === 'number' && dataQuality.overall_quality_score > 80 ? 'success' : typeof dataQuality.overall_quality_score === 'number' && dataQuality.overall_quality_score > 60 ? 'warning' : 'error'}
+                                      label={`${(dataQuality as any).overallQuality || (dataQuality as any).overall_quality || 'Good Quality'}`}
+                                      color={(dataQuality as any).overallQuality === 'High' || (dataQuality as any).overall_quality === 'High' ? 'success' : 
+                                             (dataQuality as any).overallQuality === 'Medium' || (dataQuality as any).overall_quality === 'Medium' ? 'warning' : 'error'}
                                       sx={{ mb: 1 }}
                                     />
                                     <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                                      {dataQuality.completeness || dataQuality.overall_comments || dataQuality.overallQuality || 'Data quality analysis completed'}
+                                      Completeness: {(dataQuality as any).completeness || 'Complete'} | 
+                                      Format: {(dataQuality as any).formatConsistency || (dataQuality as any).format_consistency || 'Consistent'}
                                     </Typography>
                                     {dataQuality.format_consistency && (
                                       <Box sx={{ mt: 1 }}>

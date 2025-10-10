@@ -33,7 +33,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import axios from 'axios';
-import { parseAIAnalysis, isClaimAnalysis } from '../utils/aiAnalysisParser';
+import { parseClaimAnalysis, isClaimAnalysis } from '../utils/aiAnalysisParser';
 
 interface ClaimFormData {
   patient_id: string;
@@ -358,7 +358,7 @@ const ClaimProcessing: React.FC = () => {
                         </Typography>
                         
                         {(() => {
-                          const analysis = parseAIAnalysis(result.ai_analysis);
+                          const analysis = parseClaimAnalysis(result.ai_analysis);
                           
                           if (!analysis) {
                             return (

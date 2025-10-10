@@ -38,7 +38,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import axios from 'axios';
-import { parseAIAnalysis, isClaimAnalysis } from '../utils/aiAnalysisParser';
+import { parseClaimAnalysis, isClaimAnalysis } from '../utils/aiAnalysisParser';
 
 interface Claim {
   id: string;
@@ -471,7 +471,7 @@ const ClaimManagement: React.FC = () => {
                       </Typography>
                       
                       {(() => {
-                        const analysis = parseAIAnalysis(selectedClaim.ai_analysis);
+                        const analysis = parseClaimAnalysis(selectedClaim.ai_analysis);
                         
                         if (!analysis) {
                           return (

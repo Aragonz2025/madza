@@ -22,21 +22,36 @@ class BedrockService:
         """Process patient registration using AI agent"""
         try:
             prompt = f"""
-            Analyze the following patient registration data and provide insights:
-            
+            Analyze this patient registration data and respond with ONLY a JSON object. No other text.
+
             Patient Data:
             - Name: {patient_data.get('firstName')} {patient_data.get('lastName')}
             - Email: {patient_data.get('email')}
             - Phone: {patient_data.get('phone')}
             - Date of Birth: {patient_data.get('dateOfBirth')}
-            
-            Please provide:
-            1. Risk assessment for insurance eligibility
-            2. Data quality analysis
-            3. Recommendations for verification
-            4. Potential fraud indicators
-            
-            Respond in JSON format with analysis results.
+
+            Based on the data provided, return this JSON structure with appropriate values:
+            {{
+              "riskAssessment": {{
+                "insuranceEligibility": "Eligible|Not Eligible|Pending Review",
+                "riskLevel": "Low|Medium|High", 
+                "justification": "Brief explanation based on the data"
+              }},
+              "dataQualityAnalysis": {{
+                "completeness": "Complete|Incomplete|Partial",
+                "formatConsistency": "Consistent|Inconsistent|Mixed",
+                "overallQuality": "High|Medium|Low"
+              }},
+              "verificationRecommendations": [
+                "Specific recommendation based on the data",
+                "Another specific recommendation",
+                "Third specific recommendation"
+              ],
+              "potentialFraudIndicators": [
+                "Any fraud indicators found or 'None identified'",
+                "Another indicator or 'None identified'"
+              ]
+            }}
             """
             
             response = self._invoke_bedrock(prompt)
@@ -55,22 +70,43 @@ class BedrockService:
         """Process insurance claim using multi-step AI agent"""
         try:
             prompt = f"""
-            Process the following insurance claim using multi-step analysis:
-            
+            Analyze this insurance claim and respond with ONLY a JSON object. No other text.
+
             Claim Data:
             - Patient ID: {claim_data.get('patient_id')}
             - Claim Amount: ${claim_data.get('claim_amount')}
             - Claim Type: {claim_data.get('claim_type')}
             - Description: {claim_data.get('description')}
-            
-            Multi-step Analysis:
-            1. Validate claim completeness
-            2. Check against policy coverage
-            3. Assess fraud risk
-            4. Determine approval requirements
-            5. Calculate processing time
-            
-            Provide detailed analysis and next steps in JSON format.
+
+            Based on the claim data, return this JSON structure with appropriate values:
+            {{
+              "claimId": "CLM-{claim_data.get('patient_id', 'UNKNOWN')[:8]}",
+              "validation": {{
+                "status": "Valid|Invalid|Pending",
+                "completeness": "Complete|Incomplete|Partial",
+                "issues": ["Any issues found or empty array"]
+              }},
+              "coverageCheck": {{
+                "policyCoverage": "Covered|Not Covered|Partially Covered",
+                "medicalNecessity": "Medically Necessary|Not Medically Necessary|Under Review",
+                "coverageDecision": "Approved|Denied|Pending Review"
+              }},
+              "fraudRiskAssessment": {{
+                "riskLevel": "Low|Medium|High",
+                "riskFactors": ["Any risk factors found or empty array"],
+                "recommendation": "Approve|Deny|Manual Review Required"
+              }},
+              "approvalRequirements": {{
+                "requiredDocuments": ["Document 1", "Document 2"],
+                "preAuthorization": "Required|Not Required|Already Obtained",
+                "additionalSteps": ["Any additional steps needed or empty array"]
+              }},
+              "processingTimeEstimate": {{
+                "standardTurnaround": "1-3 business days|3-5 business days|5-10 business days",
+                "potentialDelays": ["Any potential delays or empty array"]
+              }},
+              "nextSteps": ["Next step 1", "Next step 2", "Next step 3"]
+            }}
             """
             
             response = self._invoke_bedrock(prompt)
@@ -99,19 +135,31 @@ class BedrockService:
         """Analyze claim denial and provide AI suggestions"""
         try:
             prompt = f"""
-            Analyze the following claim denial and provide suggestions for reprocessing:
-            
+            You are a healthcare AI system. You must respond with ONLY a JSON object. No other text, no reasoning, no explanations.
+
             Claim ID: {claim_id}
             Denial Reason: {reason}
-            
-            Please provide:
-            1. Root cause analysis
-            2. Required documentation
-            3. Steps to resolve issues
-            4. Likelihood of successful reprocessing
-            5. Alternative claim options
-            
-            Respond in JSON format with detailed suggestions.
+
+            {{
+              "rootCauseAnalysis": "Claim denied due to missing documentation",
+              "requiredDocumentation": [
+                "Medical records",
+                "Insurance verification",
+                "Provider authorization"
+              ],
+              "resolutionSteps": [
+                "Gather required documents",
+                "Resubmit claim with documentation",
+                "Follow up with insurance provider"
+              ],
+              "successLikelihood": "High",
+              "alternativeOptions": [
+                "Appeal the denial",
+                "Contact provider for assistance",
+                "Submit partial claim"
+              ],
+              "priority": "High"
+            }}
             """
             
             response = self._invoke_bedrock(prompt)
@@ -223,7 +271,7 @@ class BedrockService:
         """Generate AI suggestions for improving a claim"""
         try:
             prompt = f"""
-            Analyze the following insurance claim and provide specific, actionable suggestions for improvement:
+            Analyze this insurance claim and provide improvement suggestions. Respond with ONLY a JSON object. No other text.
 
             Claim Details:
             - ID: {claim.id}
@@ -236,50 +284,83 @@ class BedrockService:
             Current AI Analysis:
             {json.dumps(claim.get_ai_analysis(), indent=2) if claim.get_ai_analysis() else 'No analysis available'}
 
-            Please provide suggestions in the following JSON format:
+            Based on the claim data and analysis, return this JSON structure with appropriate values:
             {{
                 "root_cause": "Brief explanation of why the claim needs improvement",
                 "suggestions": [
                     "Specific suggestion 1 with actionable steps",
-                    "Specific suggestion 2 with actionable steps",
+                    "Specific suggestion 2 with actionable steps", 
                     "Specific suggestion 3 with actionable steps"
                 ],
-                "priority": "high|medium|low",
+                "priority": "High|Medium|Low",
                 "estimated_impact": "Brief description of expected improvement"
             }}
-
-            Focus on:
-            1. Documentation improvements
-            2. Claim amount justification
-            3. Medical necessity clarification
-            4. Process optimization
-            5. Risk mitigation
             """
             
-            # Generate intelligent suggestions based on claim analysis
-            suggestions = []
-            if claim.claim_amount > 5000:
-                suggestions.append("Consider breaking down high-value claim into smaller, more manageable amounts")
-            if 'emergency' in claim.claim_type.lower():
-                suggestions.append("Ensure emergency room visit documentation includes triage notes and vital signs")
-            if len(claim.description) < 100:
-                suggestions.append("Provide more detailed description of medical services and procedures performed")
-            if claim.status == 'pending_approval':
-                suggestions.append("Submit additional supporting documentation to expedite approval process")
+            response = self._invoke_bedrock(prompt)
             
-            if not suggestions:
-                suggestions = [
+            # Handle different response formats from _invoke_bedrock
+            if isinstance(response, dict) and 'analysis' in response:
+                # Response has analysis field, extract the content
+                analysis_content = response['analysis']
+                if isinstance(analysis_content, str):
+                    # Clean up reasoning tags and parse JSON
+                    json_string = analysis_content
+                    if '<reasoning>' in json_string:
+                        reasoning_end = json_string.find('</reasoning>')
+                        if reasoning_end != -1:
+                            json_string = json_string[reasoning_end + 11:].strip()
+                    
+                    # Find the first { and last } to extract JSON
+                    first_brace = json_string.find('{')
+                    last_brace = json_string.rfind('}')
+                    if first_brace != -1 and last_brace != -1 and last_brace > first_brace:
+                        json_string = json_string[first_brace:last_brace + 1]
+                    
+                    try:
+                        response = json.loads(json_string)
+                    except json.JSONDecodeError:
+                        response = {}
+                else:
+                    response = analysis_content
+            elif isinstance(response, str):
+                # Direct string response, clean up reasoning tags
+                json_string = response
+                if '<reasoning>' in json_string:
+                    reasoning_end = json_string.find('</reasoning>')
+                    if reasoning_end != -1:
+                        json_string = json_string[reasoning_end + 11:].strip()
+                
+                # Find the first { and last } to extract JSON
+                first_brace = json_string.find('{')
+                last_brace = json_string.rfind('}')
+                if first_brace != -1 and last_brace != -1 and last_brace > first_brace:
+                    json_string = json_string[first_brace:last_brace + 1]
+                
+                try:
+                    response = json.loads(json_string)
+                except json.JSONDecodeError:
+                    response = {}
+            elif not isinstance(response, dict):
+                response = {}
+            
+            # Ensure the response has the required structure
+            if not isinstance(response, dict):
+                response = {}
+            
+            # Validate and provide defaults for required fields
+            result = {
+                "root_cause": response.get("root_cause", "AI analysis suggests optimization opportunities"),
+                "suggestions": response.get("suggestions", [
                     "Review claim documentation for completeness",
-                    "Verify medical necessity with provider",
+                    "Verify medical necessity with provider", 
                     "Ensure all required fields are properly filled"
-                ]
-            
-            return {
-                "root_cause": "AI analysis suggests optimization opportunities for faster processing",
-                "suggestions": suggestions,
-                "priority": "medium",
-                "estimated_impact": "Improved processing speed and approval likelihood"
+                ]),
+                "priority": response.get("priority", "Medium"),
+                "estimated_impact": response.get("estimated_impact", "Improved processing efficiency")
             }
+            
+            return result
             
         except Exception as e:
             return {
