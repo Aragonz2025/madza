@@ -1,0 +1,271 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Madza AI Healthcare Platform - Separate UI and Backend Instances'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: production
+    AllowedValues: [development, staging, production]
+    Description: Environment name
+
+
+  KeyPairName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: EC2 Key Pair for SSH access
+
+Conditions:
+  IsProduction: !Equals [!Ref Environment, 'production']
+
+Resources:
+  # VPC
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${Environment}-madza-vpc'
+
+  # Internet Gateway
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub '${Environment}-madza-igw'
+
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+
+  # Public Subnet
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs '']
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${Environment}-madza-public'
+
+  # Second Public Subnet - Required for RDS (min 2 AZs)
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, !GetAZs '']
+      CidrBlock: 10.0.2.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${Environment}-madza-public-2'
+
+  # Route Table
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub '${Environment}-madza-public-rt'
+
+  DefaultPublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet
+
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet2
+
+  # Security Groups
+  BackendSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for backend API
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+          Description: SSH access
+        - IpProtocol: tcp
+          FromPort: 5001
+          ToPort: 5001
+          CidrIp: 0.0.0.0/0
+          Description: Backend API
+      Tags:
+        - Key: Name
+          Value: !Sub '${Environment}-madza-backend-sg'
+
+
+
+
+  # Backend EC2 Instance
+  BackendServer:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-00564be2f2a229398  # Amazon Linux 2023
+      InstanceType: t3.micro  # Free tier eligible
+      KeyName: !Ref KeyPairName
+      SecurityGroupIds:
+        - !Ref BackendSecurityGroup
+      SubnetId: !Ref PublicSubnet
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          set -e
+          
+          # Update system
+          dnf update -y
+          
+          # Install Python 3.11 and essential tools only
+          dnf install -y python3.11 python3.11-pip python3.11-devel gcc git curl
+          
+          # Create application directory
+          mkdir -p /opt/madza/backend
+          cd /opt/madza/backend
+          
+          # Create requirements.txt
+          cat > requirements.txt << 'REQEOF'
+          flask==3.0.0
+          flask-cors==4.0.0
+          flask-sqlalchemy==3.1.1
+          boto3==1.34.0
+          python-dotenv==1.0.0
+          alembic==1.16.5
+          flask-migrate==4.0.5
+          pytest==7.4.3
+          pytest-flask==1.3.0
+          gunicorn==21.2.0
+          REQEOF
+          
+          # Install Python dependencies with memory optimization
+          pip3.11 install --no-cache-dir -r requirements.txt
+          
+          # Create .env file
+          cat > .env << 'ENVEOF'
+          FLASK_ENV=production
+          FLASK_APP=main.py
+          DATABASE_URL=sqlite:///opt/madza/backend/healthcare.db
+          AWS_REGION=us-east-1
+          FRONTEND_URL=*
+          ENVEOF
+          
+          # Create systemd service for backend using gunicorn
+          cat > /etc/systemd/system/madza-backend.service << 'EOF'
+          [Unit]
+          Description=Madza AI Healthcare Backend
+          After=network.target
+          
+          [Service]
+          Type=simple
+          User=ec2-user
+          WorkingDirectory=/opt/madza/backend
+          ExecStart=/usr/local/bin/gunicorn --bind 0.0.0.0:5001 --workers 1 --timeout 120 --max-requests 1000 --max-requests-jitter 100 app.main:app
+          Restart=always
+          RestartSec=10
+          Environment=FLASK_ENV=production
+          Environment=FLASK_APP=main.py
+          Environment=DATABASE_URL=sqlite:///opt/madza/backend/healthcare.db
+          Environment=AWS_REGION=us-east-1
+          Environment=FRONTEND_URL=*
+          
+          [Install]
+          WantedBy=multi-user.target
+          EOF
+          
+          # Enable service
+          systemctl daemon-reload
+          systemctl enable madza-backend
+          
+          # Create database directory
+          mkdir -p /opt/madza/backend
+          chown -R ec2-user:ec2-user /opt/madza/
+          
+          # Start service
+          systemctl start madza-backend
+          
+          echo "Backend server setup completed!"
+      Tags:
+        - Key: Name
+          Value: !Sub '${Environment}-madza-backend'
+
+  # S3 Bucket for Frontend
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${Environment}-madza-frontend-${AWS::AccountId}'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+      Tags:
+        - Key: Name
+          Value: !Sub '${Environment}-madza-frontend'
+
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendBucket
+      PolicyDocument:
+        Statement:
+          - Sid: PublicReadGetObject
+            Effect: Allow
+            Principal: '*'
+            Action: 's3:GetObject'
+            Resource: !Sub 'arn:aws:s3:::${FrontendBucket}/*'
+
+Outputs:
+  BackendServerPublicIP:
+    Description: Public IP address of the backend server
+    Value: !GetAtt BackendServer.PublicIp
+    Export:
+      Name: !Sub '${AWS::StackName}-BackendIP'
+
+  BackendServerPublicDNS:
+    Description: Public DNS name of the backend server
+    Value: !GetAtt BackendServer.PublicDnsName
+    Export:
+      Name: !Sub '${AWS::StackName}-BackendDNS'
+
+
+  BackendAPIURL:
+    Description: Backend API URL
+    Value: !Sub 'http://${BackendServer.PublicDnsName}:5001'
+    Export:
+      Name: !Sub '${AWS::StackName}-BackendAPIURL'
+
+  FrontendBucketName:
+    Description: S3 bucket name for frontend
+    Value: !Ref FrontendBucket
+    Export:
+      Name: !Sub '${AWS::StackName}-FrontendBucket'
+
+  FrontendWebsiteURL:
+    Description: S3 website URL
+    Value: !GetAtt FrontendBucket.WebsiteURL
+    Export:
+      Name: !Sub '${AWS::StackName}-FrontendURL'

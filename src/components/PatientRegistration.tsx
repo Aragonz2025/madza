@@ -25,6 +25,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import axios from 'axios';
+import { API_ENDPOINTS } from '../utils/apiConfig';
 import { parsePatientAnalysis, isPatientAnalysis } from '../utils/aiAnalysisParser';
 
 interface PatientFormData {
@@ -64,7 +65,7 @@ const PatientRegistration: React.FC = () => {
     setResult(null);
 
     try {
-      const response = await axios.post('http://localhost:5001/api/patient/register', formData);
+      const response = await axios.post(API_ENDPOINTS.PATIENT_REGISTER, formData);
       setResult(response.data);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Registration failed');

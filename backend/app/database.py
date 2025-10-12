@@ -7,9 +7,9 @@ migrate = Migrate()
 
 def init_db(app):
     """Initialize database with the Flask app"""
-    # Configure SQLite database
-    basedir = os.path.abspath(os.path.dirname(__file__))
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "healthcare.db")}'
+    # Configure database from environment variable or default to SQLite
+    database_url = os.getenv('DATABASE_URL', f'sqlite:///{os.path.join(os.path.abspath(os.path.dirname(__file__)), "healthcare.db")}')
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
     # Initialize extensions

@@ -6,101 +6,112 @@ Copy the code below and paste it into any Mermaid-compatible tool:
 
 ```mermaid
 graph TB
-    %% Frontend Components
-    subgraph "🖥️ React Frontend (Port 3000)"
-        DASH[("📊 Dashboard<br/>Real-time Metrics & Activity")]
-        PAT_REG[("👤 Patient Registration<br/>AI-Powered Onboarding")]
-        PAT_MGMT[("👥 Patient Management<br/>View & Search Patients")]
-        CLAIM_PROC[("📋 Claim Processing<br/>Multi-Step AI Workflow")]
-        CLAIM_MGMT[("⚖️ Claim Management<br/>Approve/Deny with AI")]
-        OBS[("📈 Observability<br/>System Monitoring")]
-        AGENT[("🤖 Agent Status<br/>AI Performance Metrics")]
+    %% Frontend Layer
+    subgraph FE["🖥️ REACT FRONTEND (Port 3000)"]
+        direction TB
+        DASH[📊 Dashboard<br/>Real-time Metrics & Activity]
+        PAT_REG[👤 Patient Registration<br/>AI-Powered Onboarding]
+        PAT_MGMT[👥 Patient Management<br/>View & Search Patients]
+        CLAIM_PROC[📋 Claim Processing<br/>Multi-Step AI Workflow]
+        CLAIM_MGMT[⚖️ Claim Management<br/>Approve/Deny with AI]
+        OBS[📈 Observability<br/>System Monitoring]
+        AGENT[🤖 Agent Status<br/>AI Performance Metrics]
     end
 
-    %% Backend API
-    subgraph "⚙️ Flask Backend (Port 5001)"
-        API[("🔗 REST API<br/>15 Endpoints")]
-        HEALTH[("❤️ /api/health")]
-        PAT_API[("👤 /api/patient/*")]
-        CLAIM_API[("📋 /api/claims/*")]
-        OBS_API[("📊 /api/observability/*")]
-        AGENT_API[("🤖 /api/agents/*")]
-        ACTIVITY[("📝 /api/activity/*")]
+    %% Backend API Layer
+    subgraph BE["⚙️ FLASK BACKEND (Port 5001)"]
+        direction TB
+        API[🔗 REST API<br/>15 Endpoints]
+        HEALTH[❤️ /api/health]
+        PAT_API[👤 /api/patient/*]
+        CLAIM_API[📋 /api/claims/*]
+        OBS_API[📊 /api/observability/*]
+        AGENT_API[🤖 /api/agents/*]
+        ACTIVITY[📝 /api/activity/*]
     end
 
-    %% Business Services
-    subgraph "🧠 Business Logic Layer"
-        BEDROCK_SVC[("🧠 BedrockService<br/>AWS Bedrock Integration")]
-        PAT_SVC[("👤 PatientService<br/>Patient CRUD Operations")]
-        CLAIM_SVC[("📋 ClaimService<br/>Claim CRUD & Management")]
+    %% Business Logic Layer
+    subgraph BL["🧠 BUSINESS LOGIC LAYER"]
+        direction TB
+        BEDROCK_SVC[🧠 BedrockService<br/>AWS Bedrock Integration]
+        PAT_SVC[👤 PatientService<br/>Patient CRUD Operations]
+        CLAIM_SVC[📋 ClaimService<br/>Claim CRUD & Management]
     end
 
-    %% AI Processing
-    subgraph "🤖 AI Processing"
-        PAT_AI[("👤 Patient Registration AI<br/>Risk Assessment & Validation")]
-        CLAIM_AI[("📋 Claim Processing AI<br/>Multi-Step Validation")]
-        DENIAL_AI[("❌ Denial Analysis AI<br/>Reprocessing Suggestions")]
-        OBS_AI[("📊 Observability AI<br/>System Health Monitoring")]
+    %% AI Processing Layer
+    subgraph AI["🤖 AI PROCESSING LAYER"]
+        direction TB
+        PAT_AI[👤 Patient Registration AI<br/>Risk Assessment & Validation]
+        CLAIM_AI[📋 Claim Processing AI<br/>Multi-Step Validation]
+        DENIAL_AI[❌ Denial Analysis AI<br/>Reprocessing Suggestions]
+        OBS_AI[📊 Observability AI<br/>System Health Monitoring]
     end
 
-    %% AWS Services
-    subgraph "☁️ AWS Cloud"
-        BEDROCK[("🧠 Amazon Bedrock<br/>Claude 3 Sonnet")]
-        BEDROCK_AGENT[("🤖 Bedrock Agent<br/>Simple Process Orchestration")]
-        IAM[("🔐 AWS IAM<br/>Security & Access")]
+    %% AWS Cloud Layer
+    subgraph AWS["☁️ AWS CLOUD"]
+        direction TB
+        BEDROCK[🧠 Amazon Bedrock<br/>Claude 3 Sonnet]
+        BEDROCK_AGENT[🤖 Bedrock Agent<br/>Simple Process Orchestration]
+        IAM[🔐 AWS IAM<br/>Security & Access]
     end
 
-    %% Database
-    subgraph "💾 Data Layer"
-        SQLITE[("🗃️ SQLite Database<br/>Local Development")]
-        PAT_TBL[("👤 Patient Table<br/>+ AI Analysis JSON")]
-        CLAIM_TBL[("📋 Claim Table<br/>+ AI Analysis JSON")]
+    %% Data Layer
+    subgraph DATA["💾 DATA LAYER"]
+        direction TB
+        SQLITE[🗃️ SQLite Database<br/>Local Development]
+        PAT_TBL[👤 Patient Table<br/>+ AI Analysis JSON]
+        CLAIM_TBL[📋 Claim Table<br/>+ AI Analysis JSON]
     end
 
-    %% Frontend to API
-    DASH --> OBS_API
-    DASH --> ACTIVITY
-    PAT_REG --> PAT_API
-    PAT_MGMT --> PAT_API
-    CLAIM_PROC --> CLAIM_API
-    CLAIM_MGMT --> CLAIM_API
-    OBS --> OBS_API
-    AGENT --> AGENT_API
+    %% Connections - Frontend to Backend
+    DASH -.->|"HTTP Requests"| OBS_API
+    DASH -.->|"HTTP Requests"| ACTIVITY
+    PAT_REG -.->|"POST /api/patient/register"| PAT_API
+    PAT_MGMT -.->|"GET /api/patients"| PAT_API
+    CLAIM_PROC -.->|"POST /api/claims/process"| CLAIM_API
+    CLAIM_MGMT -.->|"GET/PUT/POST /api/claims/*"| CLAIM_API
+    OBS -.->|"GET /api/observability/*"| OBS_API
+    AGENT -.->|"GET /api/agents/status"| AGENT_API
 
-    %% API to Services
+    %% Backend Internal Connections
     API --> BEDROCK_SVC
     API --> PAT_SVC
     API --> CLAIM_SVC
     HEALTH --> API
+    PAT_API --> PAT_SVC
+    CLAIM_API --> CLAIM_SVC
+    OBS_API --> BEDROCK_SVC
+    AGENT_API --> BEDROCK_SVC
+    ACTIVITY --> BEDROCK_SVC
 
-    %% Services to AI
-    PAT_SVC --> PAT_AI
-    CLAIM_SVC --> CLAIM_AI
-    CLAIM_SVC --> DENIAL_AI
-    BEDROCK_SVC --> OBS_AI
+    %% Business Logic to AI
+    PAT_SVC -->|"Triggers"| PAT_AI
+    CLAIM_SVC -->|"Triggers"| CLAIM_AI
+    CLAIM_SVC -->|"Triggers"| DENIAL_AI
+    BEDROCK_SVC -->|"Triggers"| OBS_AI
 
     %% AI to AWS
-    PAT_AI --> BEDROCK_AGENT
-    CLAIM_AI --> BEDROCK_AGENT
-    DENIAL_AI --> BEDROCK_AGENT
-    OBS_AI --> BEDROCK_AGENT
-    BEDROCK_AGENT --> BEDROCK
-    BEDROCK_SVC --> BEDROCK
-    BEDROCK_SVC --> IAM
+    PAT_AI -->|"API Calls"| BEDROCK_AGENT
+    CLAIM_AI -->|"API Calls"| BEDROCK_AGENT
+    DENIAL_AI -->|"API Calls"| BEDROCK_AGENT
+    OBS_AI -->|"API Calls"| BEDROCK_AGENT
+    BEDROCK_AGENT -->|"LLM Inference"| BEDROCK
+    BEDROCK_SVC -->|"Direct API"| BEDROCK
+    BEDROCK_SVC -->|"Authentication"| IAM
 
     %% Data Connections
-    PAT_SVC --> PAT_TBL
-    CLAIM_SVC --> CLAIM_TBL
-    PAT_TBL --> SQLITE
-    CLAIM_TBL --> SQLITE
+    PAT_SVC -->|"CRUD Operations"| PAT_TBL
+    CLAIM_SVC -->|"CRUD Operations"| CLAIM_TBL
+    PAT_TBL -->|"Stores Data"| SQLITE
+    CLAIM_TBL -->|"Stores Data"| SQLITE
 
-    %% Styling
-    classDef frontend fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    classDef api fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-    classDef services fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
-    classDef ai fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    classDef aws fill:#ffebee,stroke:#d32f2f,stroke-width:2px
-    classDef data fill:#f1f8e9,stroke:#33691e,stroke-width:2px
+    %% Styling with better boxes
+    classDef frontend fill:#e3f2fd,stroke:#1976d2,stroke-width:3px,color:#000,font-weight:bold
+    classDef api fill:#f3e5f5,stroke:#7b1fa2,stroke-width:3px,color:#000,font-weight:bold
+    classDef services fill:#e8f5e8,stroke:#388e3c,stroke-width:3px,color:#000,font-weight:bold
+    classDef ai fill:#fff3e0,stroke:#f57c00,stroke-width:3px,color:#000,font-weight:bold
+    classDef aws fill:#ffebee,stroke:#d32f2f,stroke-width:3px,color:#000,font-weight:bold
+    classDef data fill:#f1f8e9,stroke:#33691e,stroke-width:3px,color:#000,font-weight:bold
 
     class DASH,PAT_REG,PAT_MGMT,CLAIM_PROC,CLAIM_MGMT,OBS,AGENT frontend
     class API,HEALTH,PAT_API,CLAIM_API,OBS_API,AGENT_API,ACTIVITY api

@@ -30,6 +30,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import axios from 'axios';
+import { API_ENDPOINTS } from '../utils/apiConfig';
 
 interface Metrics {
   total_patients: number;
@@ -65,8 +66,8 @@ const Observability: React.FC = () => {
   const fetchObservabilityData = async () => {
     try {
       const [metricsResponse, alertsResponse] = await Promise.all([
-        axios.get('http://localhost:5001/api/observability/metrics'),
-        axios.get('http://localhost:5001/api/observability/alerts'),
+        axios.get(API_ENDPOINTS.METRICS),
+        axios.get(API_ENDPOINTS.ALERTS),
       ]);
 
       setMetrics(metricsResponse.data as Metrics);

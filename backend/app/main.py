@@ -1,8 +1,8 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from .services import BedrockService, PatientService, ClaimService
-from .models import Patient, Claim
-from .database import init_db, db
+from app.services import BedrockService, PatientService, ClaimService
+from app.models import Patient, Claim
+from app.database import init_db, db
 import os
 from dotenv import load_dotenv
 

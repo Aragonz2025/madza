@@ -45,6 +45,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import axios from 'axios';
+import { API_ENDPOINTS } from '../utils/apiConfig';
 import { parsePatientAnalysis, isPatientAnalysis } from '../utils/aiAnalysisParser';
 
 interface Patient {
@@ -72,7 +73,7 @@ const PatientManagement: React.FC = () => {
   const fetchPatients = async () => {
     try {
       setLoading(true);
-      const response = await axios.get<Patient[]>('http://localhost:5001/api/patients');
+      const response = await axios.get<Patient[]>(API_ENDPOINTS.PATIENTS);
       setPatients(response.data);
       setError(null);
     } catch (err) {

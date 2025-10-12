@@ -38,6 +38,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import axios from 'axios';
+import { API_ENDPOINTS } from '../utils/apiConfig';
 import { parseClaimAnalysis, isClaimAnalysis } from '../utils/aiAnalysisParser';
 
 interface Claim {
@@ -98,7 +99,7 @@ const ClaimManagement: React.FC = () => {
 
   const fetchClaims = async () => {
     try {
-      const response = await axios.get<Claim[]>('http://localhost:5001/api/claims');
+      const response = await axios.get<Claim[]>(API_ENDPOINTS.CLAIMS);
       setClaims(response.data);
     } catch (error) {
       console.error('Error fetching claims:', error);
@@ -214,7 +215,7 @@ const ClaimManagement: React.FC = () => {
     
     setProcessing(true);
     try {
-      await axios.post(`http://localhost:5001/api/claims/${selectedClaim.id}/approve`);
+      await axios.post(API_ENDPOINTS.CLAIM_APPROVE(selectedClaim.id));
       // Refresh claims from API
       await fetchClaims();
       setDialogOpen(false);
@@ -230,7 +231,7 @@ const ClaimManagement: React.FC = () => {
     
     setProcessing(true);
     try {
-      await axios.post(`http://localhost:5001/api/claims/${selectedClaim.id}/deny`, {
+      await axios.post(API_ENDPOINTS.CLAIM_DENY(selectedClaim.id), {
         reason: denialReason
       });
       // Refresh claims from API

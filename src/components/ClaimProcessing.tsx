@@ -33,6 +33,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import axios from 'axios';
+import { API_ENDPOINTS } from '../utils/apiConfig';
 import { parseClaimAnalysis, isClaimAnalysis } from '../utils/aiAnalysisParser';
 
 interface ClaimFormData {
@@ -103,7 +104,7 @@ const ClaimProcessing: React.FC = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:5001/api/claims/process', formData);
+      const response = await axios.post(API_ENDPOINTS.CLAIM_PROCESS, formData);
       setResult(response.data as ClaimResult);
       setActiveStep(processingSteps.length);
     } catch (err: any) {

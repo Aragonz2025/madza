@@ -24,6 +24,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import axios from 'axios';
+import { API_ENDPOINTS } from '../utils/apiConfig';
 
 interface DashboardMetrics {
   total_patients: number;
@@ -56,8 +57,8 @@ const Dashboard: React.FC = () => {
   const fetchDashboardData = async () => {
     try {
       const [metricsResponse, activityResponse] = await Promise.all([
-        axios.get('http://localhost:5001/api/observability/metrics'),
-        axios.get('http://localhost:5001/api/activity/recent'),
+        axios.get(API_ENDPOINTS.METRICS),
+        axios.get(API_ENDPOINTS.RECENT_ACTIVITY),
       ]);
 
       setMetrics(metricsResponse.data as DashboardMetrics);

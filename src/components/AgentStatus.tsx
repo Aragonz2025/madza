@@ -31,6 +31,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import axios from 'axios';
+import { API_ENDPOINTS } from '../utils/apiConfig';
 
 interface AgentStatus {
   [key: string]: {
@@ -132,7 +133,7 @@ const AgentStatus: React.FC = () => {
 
   const fetchAgentStatus = async () => {
     try {
-      const response = await axios.get('http://localhost:5001/api/agents/status');
+      const response = await axios.get(API_ENDPOINTS.AGENT_STATUS);
       setAgentStatus(response.data as AgentStatus);
     } catch (error) {
       console.error('Error fetching agent status:', error);
