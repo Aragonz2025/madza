@@ -97,6 +97,7 @@ const ClaimManagement: React.FC = () => {
     fetchClaims();
   }, []);
 
+
   const fetchClaims = async () => {
     try {
       const response = await axios.get<Claim[]>(API_ENDPOINTS.CLAIMS);
@@ -179,7 +180,7 @@ const ClaimManagement: React.FC = () => {
     
     setLoadingSuggestions(true);
     try {
-      const response = await axios.post<AISuggestionsResponse>(`http://localhost:5001/api/claims/${selectedClaim.id}/suggestions`);
+      const response = await axios.post<AISuggestionsResponse>(API_ENDPOINTS.CLAIM_SUGGESTIONS(selectedClaim.id));
       if (response.data.success && response.data.suggestions) {
         setAiSuggestions(response.data.suggestions);
       }
@@ -218,6 +219,17 @@ const ClaimManagement: React.FC = () => {
       await axios.post(API_ENDPOINTS.CLAIM_APPROVE(selectedClaim.id));
       // Refresh claims from API
       await fetchClaims();
+      
+      // Trigger EOB generation for the approved claim
+      try {
+        await axios.post(`${API_ENDPOINTS.EOBS}/generate`, {
+          claim_id: selectedClaim.id
+        });
+        console.log(`EOB generated for approved claim ${selectedClaim.id}`);
+      } catch (eobError) {
+        console.error('Error generating EOB:', eobError);
+      }
+      
       setDialogOpen(false);
     } catch (error) {
       console.error('Error approving claim:', error);
@@ -329,7 +341,7 @@ const ClaimManagement: React.FC = () => {
                     </Typography>
                   </Box>
                 ) : (
-                  <TableContainer>
+                  <TableContainer sx={{ position: 'relative', zIndex: 1 }}>
                     <Table>
                       <TableHead>
                         <TableRow>
@@ -367,7 +379,7 @@ const ClaimManagement: React.FC = () => {
                               {new Date(claim.created_at).toLocaleDateString()}
                             </TableCell>
                             <TableCell>
-                              <Box sx={{ display: 'flex', gap: 1 }}>
+                              <Box sx={{ display: 'flex', gap: 1, position: 'relative', zIndex: 1 }}>
                                 <Button
                                   size="small"
                                   startIcon={<Visibility />}

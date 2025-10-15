@@ -28,6 +28,15 @@ export const API_ENDPOINTS = {
   
   // Activity endpoints
   RECENT_ACTIVITY: `${API_BASE_URL}/api/activity/recent`,
+  
+  // Chatbot endpoints
+  CHATBOT_QUERY: `${API_BASE_URL}/api/chatbot/query`,
+  
+  // EOB endpoints
+  EOBS: `${API_BASE_URL}/api/eobs`,
+  
+  // AI Lambda endpoints
+  AI_LAMBDA_URL: process.env.REACT_APP_AI_LAMBDA_URL || 'https://your-lambda-url.amazonaws.com',
 };
 
 export default API_BASE_URL;

@@ -16,6 +16,7 @@ import {
   Assignment as AssignmentIcon,
   ManageAccounts as ManageAccountsIcon,
   People as PeopleIcon,
+  Description as DescriptionIcon,
   Analytics as AnalyticsIcon,
   Psychology as PsychologyIcon,
   AutoAwesome as AutoAwesomeIcon,
@@ -59,8 +60,14 @@ const navigationItems = [
     description: 'Approval & Denial Management',
   },
   {
+    id: 'eob-management',
+    label: 'EOB Management',
+    icon: <DescriptionIcon />,
+    description: 'Insurance EOB Processing',
+  },
+  {
     id: 'observability',
-    label: 'Observability',
+    label: 'System Performance',
     icon: <AnalyticsIcon />,
     description: 'System Metrics & Monitoring',
   },
@@ -191,30 +198,6 @@ const LeftNavigation: React.FC<LeftNavigationProps> = ({ selectedTab, onTabChang
         ))}
       </List>
 
-      <Box sx={{ position: 'absolute', bottom: 20, left: 20, right: 20 }}>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.8 }}
-        >
-          <Paper
-            elevation={0}
-            sx={{
-              p: 2,
-              background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(255, 107, 107, 0.1))',
-              border: '1px solid rgba(0, 212, 255, 0.2)',
-              borderRadius: '12px',
-            }}
-          >
-            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
-              System Status
-            </Typography>
-            <Typography variant="body2" sx={{ color: 'success.main', fontWeight: 600 }}>
-              All Systems Operational
-            </Typography>
-          </Paper>
-        </motion.div>
-      </Box>
     </Paper>
   );
 };

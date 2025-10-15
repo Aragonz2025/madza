@@ -1,8 +1,9 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from app.services import BedrockService, PatientService, ClaimService
-from app.models import Patient, Claim
+from app.models import Patient, Claim, EOB
 from app.database import init_db, db
+from app.pdf_generator import pdf_generator
 import os
 from dotenv import load_dotenv
 
@@ -139,6 +140,36 @@ def process_claim():
                     claim.denial_reason = 'AI analysis indicates denial'
             
             claim_id = claim_service.create_claim(claim)
+            
+            # If claim was automatically approved, generate EOB
+            if result.get('status') == 'approved':
+                try:
+                    eob_result = bedrock_service.generate_eob(claim)
+                    if eob_result['success']:
+                        # Create EOB record
+                        eob = EOB(
+                            claim_id=claim_id,
+                            patient_id=claim.patient_id,
+                            eob_amount=eob_result['eob_amount'],
+                            status=eob_result['status'],
+                            eob_date=eob_result['eob_date'],
+                            insurance_company=eob_result['insurance_company'],
+                            pdf_url=f"/api/eobs/{claim_id}/pdf",  # Will be updated after EOB is created
+                            ai_analysis=eob_result.get('ai_analysis'),
+                            denial_reasons=eob_result.get('denial_reasons'),
+                            refile_required=eob_result.get('refile_required', False)
+                        )
+                        
+                        db.session.add(eob)
+                        db.session.commit()
+                        
+                        # Update PDF URL with actual EOB ID
+                        eob.pdf_url = f"/api/eobs/{eob.id}/pdf"
+                        db.session.commit()
+                        
+                        print(f"EOB generated for automatically approved claim {claim_id}")
+                except Exception as eob_error:
+                    print(f"Error generating EOB for automatically approved claim {claim_id}: {eob_error}")
             
             return jsonify({
                 "success": True,
@@ -383,6 +414,163 @@ def update_claim(claim_id):
         else:
             return jsonify({"error": result.get('error', 'Update failed')}), 400
             
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/chatbot/query', methods=['POST'])
+def chatbot_query():
+    """Handle chatbot queries using AI"""
+    try:
+        data = request.get_json()
+        if not data or 'message' not in data:
+            return jsonify({"error": "Message is required"}), 400
+        
+        user_message = data['message']
+        
+        # Use Bedrock service to process the chatbot query
+        result = bedrock_service.process_chatbot_query(user_message)
+        
+        if result['success']:
+            return jsonify({
+                "response": result['response'],
+                "suggestions": result.get('suggestions', []),
+                "actionData": result.get('actionData', {})
+            }), 200
+        else:
+            return jsonify({"error": result.get('error', 'Failed to process query')}), 500
+            
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# EOB Management Endpoints
+@app.route('/api/eobs', methods=['GET'])
+def get_eobs():
+    """Get all EOBs"""
+    try:
+        eobs = EOB.query.all()
+        return jsonify({"eobs": [eob.to_dict() for eob in eobs]})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/eobs/generate', methods=['POST'])
+def generate_eob():
+    """Generate EOB for a claim using Lambda AI"""
+    try:
+        data = request.get_json()
+        claim_id = data.get('claim_id')
+        
+        if not claim_id:
+            return jsonify({"error": "claim_id is required"}), 400
+        
+        # Get the claim
+        claim = Claim.query.get(claim_id)
+        if not claim:
+            return jsonify({"error": "Claim not found"}), 404
+        
+        # Use Lambda AI to generate EOB
+        result = bedrock_service.generate_eob(claim)
+        
+        if result['success']:
+            # Create EOB record
+            eob = EOB(
+                claim_id=claim_id,
+                patient_id=claim.patient_id,
+                eob_amount=result['eob_amount'],
+                status=result['status'],
+                eob_date=result['eob_date'],
+                insurance_company=result['insurance_company'],
+                pdf_url=f"/api/eobs/{claim_id}/pdf",  # Set PDF URL after EOB is created
+                ai_analysis=result.get('ai_analysis'),
+                denial_reasons=result.get('denial_reasons'),
+                refile_required=result.get('refile_required', False)
+            )
+            
+            db.session.add(eob)
+            db.session.commit()
+            
+            # Update PDF URL with actual EOB ID
+            eob.pdf_url = f"/api/eobs/{eob.id}/pdf"
+            db.session.commit()
+            
+            return jsonify({"success": True, "eob": eob.to_dict()}), 201
+        else:
+            return jsonify({"error": result.get('error', 'Failed to generate EOB')}), 500
+            
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/eobs/<eob_id>/analyze', methods=['POST'])
+def analyze_eob(eob_id):
+    """Analyze EOB using AI"""
+    try:
+        eob = EOB.query.get(eob_id)
+        if not eob:
+            return jsonify({"error": "EOB not found"}), 404
+        
+        # Use Lambda AI to analyze EOB
+        result = bedrock_service.analyze_eob(eob)
+        
+        if result['success']:
+            eob.set_ai_analysis(result['analysis'])
+            eob.set_denial_reasons(result.get('denial_reasons', []))
+            eob.refile_required = result.get('refile_required', False)
+            
+            db.session.commit()
+            
+            return jsonify({"success": True, "analysis": result['analysis']})
+        else:
+            return jsonify({"error": result.get('error', 'Failed to analyze EOB')}), 500
+            
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/eobs/<eob_id>/refile', methods=['POST'])
+def refile_claim(eob_id):
+    """Refile claim based on EOB analysis"""
+    try:
+        data = request.get_json()
+        reason = data.get('reason', '')
+        
+        eob = EOB.query.get(eob_id)
+        if not eob:
+            return jsonify({"error": "EOB not found"}), 404
+        
+        # Use Lambda AI to create refile recommendation
+        result = bedrock_service.refile_claim(eob, reason)
+        
+        if result['success']:
+            # Update claim status
+            claim = Claim.query.get(eob.claim_id)
+            if claim:
+                claim.status = 'refiled'
+                claim.denial_reason = reason
+                db.session.commit()
+            
+            return jsonify({"success": True, "refile_data": result['refile_data']})
+        else:
+            return jsonify({"error": result.get('error', 'Failed to refile claim')}), 500
+            
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/eobs/<eob_id>/pdf', methods=['GET'])
+def get_eob_pdf(eob_id):
+    """Generate and return PDF for EOB"""
+    try:
+        eob = EOB.query.get(eob_id)
+        if not eob:
+            return jsonify({"error": "EOB not found"}), 404
+        
+        # Generate PDF
+        pdf_buffer = pdf_generator.generate_eob_pdf(eob.to_dict())
+        
+        return send_file(
+            pdf_buffer,
+            as_attachment=False,
+            download_name=f"EOB_{eob_id}.pdf",
+            mimetype='application/pdf'
+        )
+        
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

@@ -9,8 +9,11 @@ import PatientRegistration from './components/PatientRegistration';
 import PatientManagement from './components/PatientManagement';
 import ClaimProcessing from './components/ClaimProcessing';
 import ClaimManagement from './components/ClaimManagement';
+import EOBManagement from './components/EOBManagement';
 import Observability from './components/Observability';
 import AgentStatus from './components/AgentStatus';
+import Chatbot from './components/Chatbot';
+import Footer from './components/Footer';
 import './App.css';
 
 const theme = createTheme({
@@ -98,6 +101,8 @@ function App() {
         return <ClaimProcessing />;
       case 'claim-management':
         return <ClaimManagement />;
+      case 'eob-management':
+        return <EOBManagement />;
       case 'observability':
         return <Observability />;
       case 'agent-status':
@@ -113,9 +118,11 @@ function App() {
       <Router>
         <Box sx={{ display: 'flex', minHeight: '100vh', background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)' }}>
           <LeftNavigation selectedTab={selectedTab} onTabChange={setSelectedTab} />
-          <Box sx={{ flexGrow: 1, p: 3, ml: '280px' }}>
+          <Box sx={{ flexGrow: 1, p: 3, ml: '280px', pb: 8 }}>
             {renderContent()}
           </Box>
+          <Chatbot />
+          <Footer />
         </Box>
       </Router>
     </ThemeProvider>

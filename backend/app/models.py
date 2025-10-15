@@ -118,3 +118,78 @@ class Claim(db.Model):
             'denial_reason': self.denial_reason,
             'ai_suggestions': self.get_ai_suggestions()
         }
+
+class EOB(db.Model):
+    __tablename__ = 'eobs'
+    
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    claim_id = db.Column(db.String(36), db.ForeignKey('claims.id'), nullable=False)
+    patient_id = db.Column(db.String(36), db.ForeignKey('patients.id'), nullable=False)
+    eob_amount = db.Column(db.Float, nullable=False)
+    status = db.Column(db.String(20), nullable=False)  # approved, denied, partial, pending
+    eob_date = db.Column(db.Date, nullable=False)
+    insurance_company = db.Column(db.String(100), nullable=False)
+    pdf_url = db.Column(db.String(500), nullable=True)
+    ai_analysis = db.Column(db.Text)  # JSON stored as text
+    denial_reasons = db.Column(db.Text)  # JSON stored as text
+    refile_required = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    claim = db.relationship('Claim', backref=db.backref('eobs', lazy=True))
+    patient = db.relationship('Patient', backref=db.backref('eobs', lazy=True))
+    
+    def __init__(self, claim_id: str, patient_id: str, eob_amount: float, status: str,
+                 eob_date: str, insurance_company: str, pdf_url: str = None,
+                 ai_analysis: Dict[str, Any] = None, denial_reasons: list = None,
+                 refile_required: bool = False):
+        self.claim_id = claim_id
+        self.patient_id = patient_id
+        self.eob_amount = eob_amount
+        self.status = status
+        self.eob_date = datetime.strptime(eob_date, '%Y-%m-%d').date()
+        self.insurance_company = insurance_company
+        self.pdf_url = pdf_url
+        self.ai_analysis = json.dumps(ai_analysis) if ai_analysis else None
+        self.denial_reasons = json.dumps(denial_reasons) if denial_reasons else None
+        self.refile_required = refile_required
+    
+    def get_ai_analysis(self) -> Dict[str, Any]:
+        """Get AI analysis as dictionary"""
+        if self.ai_analysis:
+            return json.loads(self.ai_analysis)
+        return {}
+    
+    def set_ai_analysis(self, analysis: Dict[str, Any]):
+        """Set AI analysis from dictionary"""
+        self.ai_analysis = json.dumps(analysis) if analysis else None
+    
+    def get_denial_reasons(self) -> list:
+        """Get denial reasons as list"""
+        if self.denial_reasons:
+            return json.loads(self.denial_reasons)
+        return []
+    
+    def set_denial_reasons(self, reasons: list):
+        """Set denial reasons from list"""
+        self.denial_reasons = json.dumps(reasons) if reasons else None
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'claim_id': self.claim_id,
+            'patient_id': self.patient_id,
+            'patient_name': self.patient.first_name + ' ' + self.patient.last_name if self.patient else None,
+            'claim_amount': self.claim.claim_amount if self.claim else 0,
+            'eob_amount': self.eob_amount,
+            'status': self.status,
+            'eob_date': self.eob_date.isoformat(),
+            'insurance_company': self.insurance_company,
+            'pdf_url': self.pdf_url,
+            'ai_analysis': self.get_ai_analysis(),
+            'denial_reasons': self.get_denial_reasons(),
+            'refile_required': self.refile_required,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }
