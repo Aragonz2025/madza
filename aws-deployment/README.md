@@ -1,123 +1,121 @@
-# 🚀 AWS Deployment - Madza AI Healthcare Platform
+# Madza Healthcare Application - AWS Deployment
 
-Simple, cost-effective deployment using EC2 backend with SQLite and S3 frontend hosting.
+This directory contains all the necessary files for deploying the Madza Healthcare Application to AWS.
 
-## 💰 **Cost: $5-10/month (Free Tier Eligible)**
-
-## 🚀 **Quick Deploy**
-
-```bash
-# 1. Set up AWS CLI
-aws configure
-
-# 2. Create key pair
-aws ec2 create-key-pair --key-name madza --region us-east-1
-
-# 3. Deploy everything
-cd cost-optimized-deployment/scripts
-./deploy-full-stack.sh
-```
-
-## 📋 **Architecture**
-
-- **Backend**: EC2 t3.micro (Free Tier) with Python Flask + Gunicorn
-- **Frontend**: S3 static website hosting  
-- **Database**: SQLite (local file on EC2)
-- **AI Services**: AWS Bedrock integration
-
-## 📁 **File Structure**
+## 📁 Directory Structure
 
 ```
 aws-deployment/
-└── cost-optimized-deployment/
-    ├── cloudformation/
-    │   └── separate-instances.yaml    # Main CloudFormation template
-    ├── scripts/
-    │   ├── deploy-full-stack.sh       # Complete deployment
-    │   ├── deploy-backend-only.sh     # Backend only
-    │   ├── deploy-s3-frontend.sh      # Frontend only
-    │   └── test-deployment.sh         # Test deployment
-    ├── DEPLOYMENT_GUIDE.md            # Detailed guide
-    └── README.md                      # Quick start guide
+├── cost-optimized-deployment/          # Main deployment configuration
+│   ├── cloudformation/                 # CloudFormation templates
+│   │   └── separate-instances.yaml    # Infrastructure template
+│   ├── iam/                           # IAM roles and policies
+│   │   └── iam-roles.yaml            # IAM configuration
+│   ├── scripts/                       # Deployment scripts
+│   │   ├── setup-iam-roles.sh        # Setup IAM roles
+│   │   ├── deploy-full-stack.sh      # Deploy infrastructure
+│   │   ├── deploy-backend-only.sh    # Deploy backend
+│   │   ├── deploy-s3-frontend.sh     # Deploy frontend
+│   │   ├── test-deployment.sh        # Test deployment
+│   │   ├── deploy-backend-fixed.sh   # Fixed backend deployment
+│   │   ├── update-backend.sh         # Update backend
+│   │   ├── start.sh                  # Start services
+│   │   └── cleanup-project.sh        # Cleanup script
+│   ├── DEPLOYMENT_GUIDE.md           # Basic deployment guide
+│   ├── COMPLETE_DEPLOYMENT_GUIDE.md  # Comprehensive guide
+│   └── README.md                     # Project overview
+└── README.md                         # This file
 ```
 
-## 🔧 **Deployment Options**
+## 🚀 Quick Start
 
-### **Full Stack Deployment**
-```bash
-cd cost-optimized-deployment/scripts
-./deploy-full-stack.sh
-```
+1. **Setup IAM Roles**:
+   ```bash
+   cd cost-optimized-deployment/scripts
+   ./setup-iam-roles.sh
+   ```
 
-### **Backend Only (update Python code)**
-```bash
-cd cost-optimized-deployment/scripts
-./deploy-backend-only.sh
-```
+2. **Deploy Full Stack**:
+   ```bash
+   ./deploy-full-stack.sh
+   ```
 
-### **Frontend Only (after backend is deployed)**
-```bash
-export BACKEND_API_URL=http://your-backend-url:5001
-cd cost-optimized-deployment/scripts
-./deploy-s3-frontend.sh
-```
+3. **Deploy Backend**:
+   ```bash
+   ./deploy-backend-only.sh
+   ```
 
-### **Test Deployment**
+4. **Deploy Frontend**:
+   ```bash
+   ./deploy-s3-frontend.sh
+   ```
+
+5. **Test Deployment**:
+   ```bash
+   ./test-deployment.sh
+   ```
+
+## 📋 Prerequisites
+
+- AWS CLI configured
+- Node.js (v14+)
+- Python (v3.8+)
+- Git
+
+## 🔧 Configuration
+
+All configuration is handled through the deployment scripts. Key settings:
+
+- **Region**: us-east-1
+- **Instance Type**: t3.micro
+- **Backend Port**: 5001
+- **Frontend**: S3 static hosting
+
+## 📚 Documentation
+
+- **COMPLETE_DEPLOYMENT_GUIDE.md**: Comprehensive deployment instructions
+- **DEPLOYMENT_GUIDE.md**: Basic deployment steps
+- **iam/iam-roles.yaml**: IAM roles and policies configuration
+- **cloudformation/separate-instances.yaml**: Infrastructure template
+
+## 🧪 Testing
+
+Run the test script to verify deployment:
 ```bash
-cd cost-optimized-deployment/scripts
 ./test-deployment.sh
 ```
 
-## 📊 **Cost Breakdown**
+## 🔄 Updates
 
-| Service | Monthly Cost |
-|---------|-------------|
-| EC2 t3.micro (Free Tier) | $0-5* |
-| S3 Storage | $1-2 |
-| Data Transfer | $1-2 |
-| **Total** | **$5-10** |
+- **Backend Updates**: `./update-backend.sh`
+- **Frontend Updates**: `./deploy-s3-frontend.sh`
+- **Infrastructure Updates**: `./deploy-full-stack.sh`
 
-*Free for first 12 months with new AWS account
+## 🧹 Cleanup
 
-## 🎯 **Perfect For**
-
-- Development environments
-- Proof of concepts
-- Small applications
-- Learning projects
-- Startups with budget constraints
-
-## 🔗 **After Deployment**
-
-You'll get:
-- **Frontend URL**: S3 website (e.g., `http://production-madza-frontend-123456789.s3-website-us-east-1.amazonaws.com`)
-- **Backend API**: EC2 public DNS (e.g., `http://ec2-xx-xx-xx-xx.compute-1.amazonaws.com:5001`)
-
-## 🛠️ **Troubleshooting**
-
-### **Backend Issues**
+To clean up the project and remove unnecessary files:
 ```bash
-# Check service status
-ssh -i ~/.ssh/madza.pem ec2-user@BACKEND_IP 'sudo systemctl status madza-backend'
-
-# View logs
-ssh -i ~/.ssh/madza.pem ec2-user@BACKEND_IP 'sudo journalctl -u madza-backend -f'
+./cleanup-project.sh
 ```
 
-### **Frontend Issues**
-```bash
-# Check S3 bucket
-aws s3 ls s3://production-madza-frontend-ACCOUNT_ID --region us-east-1
+## 💰 Cost
 
-# Re-deploy frontend
-cd cost-optimized-deployment/scripts
-./deploy-s3-frontend.sh
-```
+- **EC2**: t3.micro (free tier eligible)
+- **S3**: Static hosting (minimal cost)
+- **Lambda**: Pay-per-request
+- **Bedrock**: Pay-per-token
 
-## 📖 **Detailed Guide**
+## 🔒 Security
 
-See `cost-optimized-deployment/DEPLOYMENT_GUIDE.md` for comprehensive instructions.
+- IAM roles with least privilege
+- Security groups with restrictive rules
+- VPC isolation
+- HTTPS ready (with CloudFront)
 
----
+## 📞 Support
 
-**Ready to deploy? Let's go! 🚀**
+For issues or questions, check:
+1. Deployment logs
+2. AWS CloudFormation stack events
+3. EC2 instance logs
+4. S3 bucket permissions

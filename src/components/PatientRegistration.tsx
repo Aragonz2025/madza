@@ -34,6 +34,8 @@ interface PatientFormData {
   email: string;
   phone: string;
   dateOfBirth: string;
+  insuranceId: string;
+  insuranceProvider: string;
 }
 
 
@@ -44,6 +46,8 @@ const PatientRegistration: React.FC = () => {
     email: '',
     phone: '',
     dateOfBirth: '',
+    insuranceId: '',
+    insuranceProvider: '',
   });
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
@@ -154,6 +158,24 @@ const PatientRegistration: React.FC = () => {
                       InputLabelProps={{ shrink: true }}
                       sx={{ mb: 2 }}
                     />
+                    <TextField
+                      fullWidth
+                      label="Insurance ID"
+                      value={formData.insuranceId}
+                      onChange={handleInputChange('insuranceId')}
+                      required
+                      variant="outlined"
+                      sx={{ mb: 2 }}
+                    />
+                    <TextField
+                      fullWidth
+                      label="Insurance Provider"
+                      value={formData.insuranceProvider}
+                      onChange={handleInputChange('insuranceProvider')}
+                      required
+                      variant="outlined"
+                      sx={{ mb: 2 }}
+                    />
                   </Box>
 
                   <Button
@@ -228,6 +250,7 @@ const PatientRegistration: React.FC = () => {
                           // Extract patient-specific fields - handle both camelCase and snake_case
                           const riskAssessment = (analysis as any).riskAssessment || (analysis as any).risk_assessment;
                           const dataQuality = (analysis as any).dataQualityAnalysis || (analysis as any).data_quality_analysis;
+                          const insuranceVerification = (analysis as any).insuranceVerification || (analysis as any).insurance_verification;
                           const recommendations = (analysis as any).verificationRecommendations || (analysis as any).verification_recommendations;
                           const fraudIndicators = (analysis as any).potentialFraudIndicators || (analysis as any).potential_fraud_indicators;
                             
@@ -304,6 +327,47 @@ const PatientRegistration: React.FC = () => {
                                         </Box>
                                       </Box>
                                     )}
+                                  </Paper>
+                                )}
+
+                                {/* Insurance Verification */}
+                                {insuranceVerification && (
+                                  <Paper
+                                    elevation={0}
+                                    sx={{
+                                      p: 2,
+                                      mb: 2,
+                                      background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(255, 107, 107, 0.1))',
+                                      border: '1px solid rgba(0, 212, 255, 0.2)',
+                                    }}
+                                  >
+                                    <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
+                                      <Security sx={{ mr: 1 }} />
+                                      Insurance Verification
+                                    </Typography>
+                                    <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+                                      <Chip
+                                        label={`Provider: ${(insuranceVerification as any).providerValid || 'Unknown'}`}
+                                        color={(insuranceVerification as any).providerValid === 'Valid' ? 'success' : 
+                                               (insuranceVerification as any).providerValid === 'Pending Verification' ? 'warning' : 'error'}
+                                        size="small"
+                                      />
+                                      <Chip
+                                        label={`ID Format: ${(insuranceVerification as any).idFormat || 'Unknown'}`}
+                                        color={(insuranceVerification as any).idFormat === 'Valid' ? 'success' : 
+                                               (insuranceVerification as any).idFormat === 'Needs Review' ? 'warning' : 'error'}
+                                        size="small"
+                                      />
+                                      <Chip
+                                        label={`Coverage: ${(insuranceVerification as any).coverageStatus || 'Unknown'}`}
+                                        color={(insuranceVerification as any).coverageStatus === 'Active' ? 'success' : 
+                                               (insuranceVerification as any).coverageStatus === 'Unknown' ? 'warning' : 'error'}
+                                        size="small"
+                                      />
+                                    </Box>
+                                    <Typography variant="body2" color="text.secondary">
+                                      Insurance verification completed for {formData.insuranceProvider}
+                                    </Typography>
                                   </Paper>
                                 )}
 

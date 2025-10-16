@@ -13,6 +13,8 @@ class Patient(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     phone = db.Column(db.String(20), nullable=False)
     date_of_birth = db.Column(db.String(10), nullable=False)
+    insurance_id = db.Column(db.String(100), nullable=False)
+    insurance_provider = db.Column(db.String(100), nullable=False)
     ai_analysis = db.Column(db.Text)  # JSON stored as text
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -21,12 +23,15 @@ class Patient(db.Model):
     claims = db.relationship('Claim', backref='patient', lazy=True)
     
     def __init__(self, first_name: str, last_name: str, email: str, phone: str, 
-                 date_of_birth: str, ai_analysis: Dict[str, Any] = None):
+                 date_of_birth: str, insurance_id: str, insurance_provider: str, 
+                 ai_analysis: Dict[str, Any] = None):
         self.first_name = first_name
         self.last_name = last_name
         self.email = email
         self.phone = phone
         self.date_of_birth = date_of_birth
+        self.insurance_id = insurance_id
+        self.insurance_provider = insurance_provider
         self.ai_analysis = json.dumps(ai_analysis) if ai_analysis else None
     
     def get_ai_analysis(self) -> Dict[str, Any]:
@@ -47,6 +52,8 @@ class Patient(db.Model):
             'email': self.email,
             'phone': self.phone,
             'date_of_birth': self.date_of_birth,
+            'insurance_id': self.insurance_id,
+            'insurance_provider': self.insurance_provider,
             'ai_analysis': self.get_ai_analysis(),
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat()

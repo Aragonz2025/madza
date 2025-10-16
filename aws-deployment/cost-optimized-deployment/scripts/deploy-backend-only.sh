@@ -60,8 +60,8 @@ echo -e "${YELLOW}📦 Preparing backend code...${NC}"
 TEMP_DIR=$(mktemp -d)
 cd $TEMP_DIR
 
-# Copy backend source
-cp -r ../../../backend/* .
+# Copy backend source from the original directory
+cp -r /Users/arpanchowdhury/Desktop/ARPAN/MINI/CODE/AI/madza/backend/* .
 
 # Create requirements.txt if it doesn't exist
 if [ ! -f "requirements.txt" ]; then
@@ -137,7 +137,7 @@ EOF
 chmod +x deploy_backend.sh
 
 # Create deployment package
-tar -czf backend-deployment.tar.gz backend deploy_backend.sh
+tar -czf backend-deployment.tar.gz * deploy_backend.sh
 
 # Upload and deploy
 echo -e "${YELLOW}📤 Uploading backend to EC2...${NC}"

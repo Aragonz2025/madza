@@ -31,27 +31,34 @@ class BedrockService:
             - Email: {patient_data.get('email')}
             - Phone: {patient_data.get('phone')}
             - Date of Birth: {patient_data.get('dateOfBirth')}
+            - Insurance ID: {patient_data.get('insuranceId')}
+            - Insurance Provider: {patient_data.get('insuranceProvider')}
 
             Based on the data provided, return this JSON structure with appropriate values:
             {{
               "riskAssessment": {{
                 "insuranceEligibility": "Eligible|Not Eligible|Pending Review",
                 "riskLevel": "Low|Medium|High", 
-                "justification": "Brief explanation based on the data"
+                "justification": "Brief explanation based on the data including insurance verification"
               }},
               "dataQualityAnalysis": {{
                 "completeness": "Complete|Incomplete|Partial",
                 "formatConsistency": "Consistent|Inconsistent|Mixed",
                 "overallQuality": "High|Medium|Low"
               }},
+              "insuranceVerification": {{
+                "providerValid": "Valid|Invalid|Pending Verification",
+                "idFormat": "Valid|Invalid|Needs Review",
+                "coverageStatus": "Active|Inactive|Unknown"
+              }},
               "verificationRecommendations": [
                 "Specific recommendation based on the data",
-                "Another specific recommendation",
+                "Insurance verification recommendation",
                 "Third specific recommendation"
               ],
               "potentialFraudIndicators": [
                 "Any fraud indicators found or 'None identified'",
-                "Another indicator or 'None identified'"
+                "Insurance-related fraud indicators or 'None identified'"
               ]
             }}
             """
