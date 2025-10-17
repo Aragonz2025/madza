@@ -226,7 +226,13 @@ REACT_APP_API_URL=http://your-backend-url:5000
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is proprietary software owned by Madza AI Healthcare Platform. 
+All rights reserved. See the [LICENSE](LICENSE) file for details.
+
+**Licensing Information:**
+- Commercial use requires a paid license
+- Contact: licensing@madzahealthcare.com
+- Website: https://madzahealthcare.com/licensing
 
 ## 🔧 Troubleshooting
 
