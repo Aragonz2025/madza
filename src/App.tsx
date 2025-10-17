@@ -6,7 +6,7 @@
  * This is the main React application component that provides routing
  * and theme configuration for the healthcare platform.
  * 
- * For licensing information, contact: licensing@madzahealthcare.com
+ * For licensing information, contact: arpanchowdhury2025@gmail.com
  */
 
 import React, { useState, useEffect } from 'react';

@@ -231,8 +231,7 @@ All rights reserved. See the [LICENSE](LICENSE) file for details.
 
 **Licensing Information:**
 - Commercial use requires a paid license
-- Contact: licensing@madzahealthcare.com
-- Website: https://madzahealthcare.com/licensing
+- Contact: arpanchowdhury2025@gmail.com
 
 ## 🔧 Troubleshooting
 

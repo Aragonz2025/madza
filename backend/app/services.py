@@ -6,7 +6,7 @@ PROPRIETARY SOFTWARE - UNAUTHORIZED USE PROHIBITED
 This file contains AI service integrations including AWS Bedrock, Lambda functions,
 and AI analysis services for patient registration, claim processing, and fraud detection.
 
-For licensing information, contact: licensing@madzahealthcare.com
+For licensing information, contact: arpanchowdhury2025@gmail.com
 """
 
 import boto3

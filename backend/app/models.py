@@ -6,7 +6,7 @@ PROPRIETARY SOFTWARE - UNAUTHORIZED USE PROHIBITED
 This file contains SQLAlchemy models for the healthcare platform including
 Patient, Claim, EOB, and Activity models with their relationships and methods.
 
-For licensing information, contact: licensing@madzahealthcare.com
+For licensing information, contact: arpanchowdhury2025@gmail.com
 """
 
 from datetime import datetime

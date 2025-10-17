@@ -6,7 +6,7 @@ PROPRIETARY SOFTWARE - UNAUTHORIZED USE PROHIBITED
 This file contains the main Flask API endpoints for the Madza AI Healthcare Platform.
 It provides RESTful APIs for patient management, claim processing, and AI integration.
 
-For licensing information, contact: licensing@madzahealthcare.com
+For licensing information, contact: arpanchowdhury2025@gmail.com
 """
 
 from flask import Flask, request, jsonify, send_file

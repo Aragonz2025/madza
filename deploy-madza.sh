@@ -7,7 +7,7 @@
 # This script automates the entire deployment process for the Madza AI Healthcare Platform.
 # It handles infrastructure setup, service configuration, and deployment verification.
 #
-# For licensing information, contact: licensing@madzahealthcare.com
+# For licensing information, contact: arpanchowdhury2025@gmail.com
 
 set -e  # Exit on any error
 
