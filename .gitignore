@@ -37,6 +37,11 @@ madza.pem
 # AWS Deployment folder (contains sensitive deployment info)
 aws-deployment/
 
+# Sensitive files that should never be committed
+.env
+backend/.env
+aws-deployment/cost-optimized-deployment/madza.pem
+
 # Database files
 *.db
 *.sqlite
