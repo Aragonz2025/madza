@@ -157,3 +157,4 @@ temp/
 *.sln
 *.sw?
 backend/app/healthcare.db
+docs/
