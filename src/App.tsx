@@ -1,6 +1,6 @@
 /**
  * Madza AI Healthcare Platform - Main Application
- * Copyright (c) 2024 Madza AI Healthcare Platform. All rights reserved.
+ * Copyright (c) 2025 Madza AI Healthcare Platform. All rights reserved.
  * 
  * This is the main React application component that provides routing
  * and theme configuration for the healthcare platform.

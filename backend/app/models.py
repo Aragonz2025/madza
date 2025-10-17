@@ -1,6 +1,6 @@
 """
 Madza AI Healthcare Platform - Data Models
-Copyright (c) 2024 Madza AI Healthcare Platform. All rights reserved.
+Copyright (c) 2025 Madza AI Healthcare Platform. All rights reserved.
 
 This file contains SQLAlchemy models for the healthcare platform including
 Patient, Claim, EOB, and Activity models with their relationships and methods.
