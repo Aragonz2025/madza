@@ -264,25 +264,6 @@ aws s3api get-bucket-website --bucket production-madza-frontend-$(aws sts get-ca
 - **Issues**: Create an issue in the repository
 - **Deployment Logs**: Check the automated script output
 
-## 🗺️ Roadmap
-
-### Short-term (1-3 months)
-- [ ] Custom domain and SSL certificate
-- [ ] Database backup and recovery
-- [ ] CloudWatch monitoring and alerts
-- [ ] JWT authentication system
-
-### Medium-term (3-6 months)
-- [ ] PostgreSQL database migration
-- [ ] Container deployment (Docker)
-- [ ] CI/CD pipeline with GitHub Actions
-- [ ] Multi-environment support
-
-### Long-term (6+ months)
-- [ ] Mobile application (React Native)
-- [ ] Multi-region deployment
-- [ ] Custom ML models training
-- [ ] Advanced analytics and reporting
 
 ---
 

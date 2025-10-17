@@ -1,3 +1,11 @@
+/**
+ * Madza AI Healthcare Platform - Main Application
+ * Copyright (c) 2024 Madza AI Healthcare Platform. All rights reserved.
+ * 
+ * This is the main React application component that provides routing
+ * and theme configuration for the healthcare platform.
+ */
+
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';

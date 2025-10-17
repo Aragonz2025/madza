@@ -1,3 +1,11 @@
+"""
+Madza AI Healthcare Platform - Data Models
+Copyright (c) 2024 Madza AI Healthcare Platform. All rights reserved.
+
+This file contains SQLAlchemy models for the healthcare platform including
+Patient, Claim, EOB, and Activity models with their relationships and methods.
+"""
+
 from datetime import datetime
 from typing import Dict, Any, Optional
 import uuid

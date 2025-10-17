@@ -1,7 +1,10 @@
 #!/bin/bash
 
-# Madza AI Healthcare - Complete Deployment Script
-# This script automates the entire deployment process
+# Madza AI Healthcare Platform - Complete Deployment Script
+# Copyright (c) 2024 Madza AI Healthcare Platform. All rights reserved.
+#
+# This script automates the entire deployment process for the Madza AI Healthcare Platform.
+# It handles infrastructure setup, service configuration, and deployment verification.
 
 set -e  # Exit on any error
 

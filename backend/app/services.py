@@ -1,3 +1,11 @@
+"""
+Madza AI Healthcare Platform - AI Services
+Copyright (c) 2024 Madza AI Healthcare Platform. All rights reserved.
+
+This file contains AI service integrations including AWS Bedrock, Lambda functions,
+and AI analysis services for patient registration, claim processing, and fraud detection.
+"""
+
 import boto3
 import json
 import os

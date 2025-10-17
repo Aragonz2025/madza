@@ -1,3 +1,11 @@
+"""
+Madza AI Healthcare Platform - Backend API
+Copyright (c) 2024 Madza AI Healthcare Platform. All rights reserved.
+
+This file contains the main Flask API endpoints for the Madza AI Healthcare Platform.
+It provides RESTful APIs for patient management, claim processing, and AI integration.
+"""
+
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from app.services import BedrockService, PatientService, ClaimService
