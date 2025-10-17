@@ -163,3 +163,5 @@ SECURITY.md
 start.sh
 COMPLETE_DEPLOYMENT_GUIDE.md
 ARCHITECTURE.md
+architecture-diagram.md
+aws-architecture-diagram.md
