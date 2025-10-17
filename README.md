@@ -2,10 +2,31 @@
 
 A comprehensive healthcare management system powered by artificial intelligence for intelligent patient registration, insurance verification, and automated claim processing.
 
-## 🚀 Live Application
+## 🚀 Quick Deployment
 
-**Frontend**: http://production-madza-frontend-439500389744.s3-website-us-east-1.amazonaws.com  
-**Backend API**: http://ec2-34-226-245-222.compute-1.amazonaws.com:5001
+Deploy the complete application with a single command:
+
+```bash
+git clone https://github.com/Aragonz2025/madza.git
+cd madza
+chmod +x deploy-madza.sh
+./deploy-madza.sh
+```
+
+## 📋 Prerequisites
+
+- AWS CLI configured with appropriate permissions
+- Node.js 16+ and npm
+- Python 3.9+
+- Git
+
+## 🏗️ Architecture
+
+- **Frontend**: React 18 + TypeScript + Material-UI (S3 Static Hosting)
+- **Backend**: Flask 3.0 + SQLAlchemy + SQLite (EC2)
+- **AI Services**: AWS Bedrock (GPT-OSS-120B)
+- **Infrastructure**: AWS CloudFormation + IAM
+- **Cost**: ~$5-10/month (Free Tier eligible)
 
 ## 📋 Features
 
@@ -42,14 +63,10 @@ A comprehensive healthcare management system powered by artificial intelligence 
 
 ## 📚 Documentation
 
-### Architecture Documentation
-- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Complete system architecture overview
-- **[TECHNICAL_SPECS.md](./TECHNICAL_SPECS.md)** - Detailed technical specifications
-- **[architecture-diagram.md](./architecture-diagram.md)** - Visual architecture diagrams
-
-### Deployment Documentation
-- **[aws-deployment/README.md](./aws-deployment/README.md)** - AWS deployment guide
-- **[aws-deployment/cost-optimized-deployment/COMPLETE_DEPLOYMENT_GUIDE.md](./aws-deployment/cost-optimized-deployment/COMPLETE_DEPLOYMENT_GUIDE.md)** - Complete deployment instructions
+### Deployment Instructions
+- **[DEPLOYMENT_INSTRUCTIONS.md](./DEPLOYMENT_INSTRUCTIONS.md)** - Complete step-by-step deployment guide
+- **[deploy-madza.sh](./deploy-madza.sh)** - Automated deployment script
+- **[aws-deployment/](./aws-deployment/)** - AWS CloudFormation templates and scripts
 
 ## 🛠️ Technology Stack
 
@@ -81,21 +98,31 @@ A comprehensive healthcare management system powered by artificial intelligence 
 
 ## 🚀 Quick Start
 
-### Prerequisites
-- Node.js 18+
-- Python 3.9+
-- AWS CLI configured
-- Git
+### Automated Deployment (Recommended)
+
+```bash
+# Clone and deploy everything
+git clone https://github.com/Aragonz2025/madza.git
+cd madza
+chmod +x deploy-madza.sh
+./deploy-madza.sh
+```
+
+The script will:
+- Check all prerequisites
+- Create AWS resources (EC2, S3, IAM)
+- Deploy backend and frontend
+- Configure AI services
+- Run health checks
+- Provide deployment URLs
+
+### Manual Deployment
+
+Follow the detailed instructions in [DEPLOYMENT_INSTRUCTIONS.md](./DEPLOYMENT_INSTRUCTIONS.md)
 
 ### Local Development
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd madza
-   ```
-
-2. **Backend Setup**
+1. **Backend Setup**
    ```bash
    cd backend
    python -m venv venv
@@ -104,35 +131,15 @@ A comprehensive healthcare management system powered by artificial intelligence 
    python run.py
    ```
 
-3. **Frontend Setup**
+2. **Frontend Setup**
    ```bash
-   cd src
    npm install
    npm start
    ```
 
-4. **Access the application**
+3. **Access the application**
    - Frontend: http://localhost:3000
-   - Backend API: http://localhost:5001
-
-### Production Deployment
-
-1. **Deploy Infrastructure**
-   ```bash
-   cd aws-deployment/cost-optimized-deployment/scripts
-   ./setup-iam-roles.sh
-   ./deploy-full-stack.sh
-   ```
-
-2. **Deploy Backend**
-   ```bash
-   ./deploy-backend-only.sh
-   ```
-
-3. **Deploy Frontend**
-   ```bash
-   ./deploy-s3-frontend.sh
-   ```
+   - Backend API: http://localhost:5000
 
 ## 📊 API Endpoints
 
@@ -159,16 +166,17 @@ A comprehensive healthcare management system powered by artificial intelligence 
 **Backend (.env)**
 ```bash
 FLASK_ENV=production
-DATABASE_URL=sqlite:///healthcare.db
-AI_LAMBDA_URL=https://your-lambda-url.amazonaws.com
+FLASK_APP=main.py
+DATABASE_URL=sqlite:////opt/madza/backend/healthcare.db
 AWS_REGION=us-east-1
-BEDROCK_MODEL_ID=openai.gpt-oss-120b-1:0
+FRONTEND_URL=*
 ```
 
 **Frontend (build-time)**
 ```bash
-REACT_APP_API_URL=http://your-backend-url:5001
+REACT_APP_API_URL=http://your-backend-url:5000
 ```
+
 
 ## 📈 Monitoring & Analytics
 
@@ -193,25 +201,20 @@ REACT_APP_API_URL=http://your-backend-url:5001
 - **Audit Logging**: Comprehensive activity tracking
 
 ### Compliance
-- **HIPAA Ready**: Healthcare data protection
 - **Data Privacy**: Patient information security
 - **Audit Trails**: Complete activity logging
 
-## 🚀 Recent Updates
+## 🚀 Features
 
-### Latest Features (v1.2.0)
-- ✅ **Insurance Fields**: Added Insurance ID and Insurance Provider to patient registration
+### Current Features (v1.0.0)
+- ✅ **AI-Powered Registration**: Intelligent patient analysis with insurance verification
 - ✅ **Enhanced AI Analysis**: Insurance verification and fraud detection
-- ✅ **Improved UI**: Updated tab name to "Madza AI Healthcare Platform"
-- ✅ **Database Schema**: Updated to support new insurance fields
-- ✅ **API Enhancements**: Improved error handling and validation
-
-### Previous Features (v1.1.0)
-- ✅ **AI-Powered Registration**: Intelligent patient analysis
-- ✅ **Claim Processing**: Automated claim validation
+- ✅ **Claim Processing**: Automated claim validation and processing
 - ✅ **EOB Management**: Explanation of Benefits handling
 - ✅ **Chatbot Integration**: Interactive AI assistant
 - ✅ **Analytics Dashboard**: Comprehensive system monitoring
+- ✅ **Automated Deployment**: One-command deployment to AWS
+- ✅ **Cost Optimization**: ~$5-10/month infrastructure costs
 
 ## 🤝 Contributing
 
@@ -225,32 +228,61 @@ REACT_APP_API_URL=http://your-backend-url:5001
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🆘 Support
+## 🔧 Troubleshooting
 
-For support and questions:
-- **Documentation**: Check the architecture and technical specs
+### Common Issues
+
+**Deployment Fails**
+```bash
+# Check AWS credentials
+aws sts get-caller-identity
+
+# Check prerequisites
+node --version
+python3 --version
+aws --version
+```
+
+**Backend Not Responding**
+```bash
+# Check service status
+ssh -i ~/.ssh/madza.pem ec2-user@$BACKEND_IP 'sudo systemctl status madza-backend'
+
+# Check logs
+ssh -i ~/.ssh/madza.pem ec2-user@$BACKEND_IP 'sudo journalctl -u madza-backend -f'
+```
+
+**Frontend Not Loading**
+```bash
+# Check S3 bucket
+aws s3api get-bucket-website --bucket production-madza-frontend-$(aws sts get-caller-identity --query Account --output text)
+```
+
+### Getting Help
+
+- **Documentation**: [DEPLOYMENT_INSTRUCTIONS.md](./DEPLOYMENT_INSTRUCTIONS.md)
 - **Issues**: Create an issue in the repository
-- **Email**: Contact the development team
+- **Deployment Logs**: Check the automated script output
 
 ## 🗺️ Roadmap
 
 ### Short-term (1-3 months)
-- [ ] Database migration to PostgreSQL
+- [ ] Custom domain and SSL certificate
+- [ ] Database backup and recovery
+- [ ] CloudWatch monitoring and alerts
 - [ ] JWT authentication system
-- [ ] CloudFront CDN integration
-- [ ] HTTPS implementation
 
 ### Medium-term (3-6 months)
-- [ ] Microservices architecture
+- [ ] PostgreSQL database migration
 - [ ] Container deployment (Docker)
-- [ ] CI/CD pipeline
-- [ ] Advanced monitoring
+- [ ] CI/CD pipeline with GitHub Actions
+- [ ] Multi-environment support
 
 ### Long-term (6+ months)
-- [ ] Mobile application
+- [ ] Mobile application (React Native)
 - [ ] Multi-region deployment
-- [ ] Custom ML models
-- [ ] Blockchain integration
+- [ ] Custom ML models training
+- [ ] Advanced analytics and reporting
 
 ---
 
