@@ -158,3 +158,8 @@ temp/
 *.sw?
 backend/app/healthcare.db
 docs/
+TECHNICAL_SPECS.md
+SECURITY.md
+start.sh
+COMPLETE_DEPLOYMENT_GUIDE.md
+ARCHITECTURE.md
