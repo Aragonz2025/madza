@@ -26,7 +26,7 @@ chmod +x deploy-madza.sh
 - **Backend**: Flask 3.0 + SQLAlchemy + SQLite (EC2)
 - **AI Services**: AWS Bedrock (GPT-OSS-120B)
 - **Infrastructure**: AWS CloudFormation + IAM
-- **Cost**: ~$5-10/month (Free Tier eligible)
+- **Cost**: ~$8-15/month (Free Tier eligible)
 
 ## 📋 Features
 
@@ -51,8 +51,8 @@ chmod +x deploy-madza.sh
 - **Frontend**: React 18 + TypeScript + Material-UI
 - **Backend**: Flask 3.0 + SQLAlchemy + SQLite
 - **AI Services**: AWS Bedrock (GPT-OSS-120B)
-- **Infrastructure**: AWS EC2 + S3 + CloudFormation
-- **Deployment**: Automated scripts with systemd services
+- **Infrastructure**: AWS EC2 + S3 + Lambda + API Gateway + CloudFormation
+- **Deployment**: Automated scripts with systemd services and CDK
 
 ### Key Components
 - **Patient Management**: Complete patient lifecycle with AI insights
@@ -67,6 +67,7 @@ chmod +x deploy-madza.sh
 - **[DEPLOYMENT_INSTRUCTIONS.md](./DEPLOYMENT_INSTRUCTIONS.md)** - Complete step-by-step deployment guide
 - **[deploy-madza.sh](./deploy-madza.sh)** - Automated deployment script
 - **[aws-deployment/](./aws-deployment/)** - AWS CloudFormation templates and scripts
+- **[agenzia-deploy/](./agenzia-deploy/)** - Lambda AI services deployment (chat functionality)
 
 ## 🛠️ Technology Stack
 
@@ -93,8 +94,9 @@ chmod +x deploy-madza.sh
 
 ### AI/ML
 - **AWS Bedrock**: GPT-OSS-120B model for intelligent analysis
+- **AWS Lambda**: Serverless AI functions for chat and advanced workflows
 - **Custom Prompts**: Healthcare-specific AI prompts
-- **Fallback Systems**: Lambda functions for reliability
+- **Multi-Agent Systems**: Research and meta-tooling workflows
 
 ## 🚀 Quick Start
 
@@ -112,13 +114,40 @@ The script will:
 - Check all prerequisites
 - Create AWS resources (EC2, S3, IAM)
 - Deploy backend and frontend
-- Configure AI services
+- Configure AI services (Bedrock + Lambda)
+- Deploy Lambda AI functions for chat
 - Run health checks
 - Provide deployment URLs
 
 ### Manual Deployment
 
 Follow the detailed instructions in [DEPLOYMENT_INSTRUCTIONS.md](./DEPLOYMENT_INSTRUCTIONS.md)
+
+### Lambda AI Services Deployment
+
+For advanced AI chat functionality, deploy the Lambda services:
+
+```bash
+# Navigate to Lambda deployment directory
+cd agenzia-deploy
+
+# Install dependencies and deploy
+npm install
+./deploy.sh
+
+# Test Lambda deployment
+aws lambda invoke --function-name AgentFunction \
+  --region us-east-1 \
+  --cli-binary-format raw-in-base64-out \
+  --payload '{"prompt": "What is medical insurance claim processing?"}' \
+  output.json
+```
+
+The Lambda deployment includes:
+- **Research Workflow**: Medical insurance claims research with 3-agent system
+- **Meta-tooling Workflow**: Dynamic tool creation and usage
+- **API Gateway**: RESTful endpoints for chat functionality
+- **Bedrock Integration**: Advanced AI model access
 
 ### Local Development
 
@@ -157,7 +186,14 @@ Follow the detailed instructions in [DEPLOYMENT_INSTRUCTIONS.md](./DEPLOYMENT_IN
 ### System & AI
 - `GET /api/health` - Health check
 - `GET /api/agents/status` - AI agent status
-- `POST /api/chatbot/query` - Chatbot interaction
+- `POST /api/chatbot/query` - Chatbot interaction (Lambda AI)
+- `GET /api/observability/metrics` - System metrics
+- `GET /api/observability/alerts` - System alerts
+
+### Lambda AI Services
+- `POST /chat` - Direct Lambda chat endpoint (API Gateway)
+- Research workflow for medical insurance claims
+- Meta-tooling workflow for dynamic tool creation
 
 ## 🔧 Configuration
 
@@ -233,6 +269,40 @@ All rights reserved. See the [LICENSE](LICENSE) file for details.
 - Commercial use requires a paid license
 - Contact: arpanchowdhury2025@gmail.com
 
+## 🤖 Lambda AI Services
+
+The platform includes advanced AI capabilities through AWS Lambda functions:
+
+### Features
+- **Research Workflow**: 3-agent system for medical insurance claims research
+- **Meta-tooling Workflow**: Dynamic tool creation and usage
+- **Chatbot Integration**: Advanced conversational AI
+- **API Gateway**: RESTful endpoints for AI services
+
+### Quick Lambda Deployment
+```bash
+cd agenzia-deploy
+npm install
+./deploy.sh
+```
+
+### Lambda Endpoints
+- **Chat API**: `POST https://your-api-gateway-url/chat`
+- **Direct Lambda**: `aws lambda invoke --function-name AgentFunction`
+
+### Lambda Testing
+```bash
+# Test research workflow
+aws lambda invoke --function-name AgentFunction \
+  --payload '{"prompt": "What is medical insurance claim processing?", "mode": "research"}' \
+  output.json
+
+# Test via API Gateway
+curl -X POST https://your-api-gateway-url/chat \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "How do I register a patient?"}'
+```
+
 ## 🔧 Troubleshooting
 
 ### Common Issues
@@ -261,6 +331,19 @@ ssh -i ~/.ssh/madza.pem ec2-user@$BACKEND_IP 'sudo journalctl -u madza-backend -
 ```bash
 # Check S3 bucket
 aws s3api get-bucket-website --bucket production-madza-frontend-$(aws sts get-caller-identity --query Account --output text)
+```
+
+**Lambda Issues**
+```bash
+# Check Lambda function
+aws lambda get-function --function-name AgentFunction
+
+# Check Lambda logs
+aws logs filter-log-events --log-group-name "/aws/lambda/AgentFunction"
+
+# Test Lambda directly
+aws lambda invoke --function-name AgentFunction \
+  --payload '{"prompt": "test"}' test-output.json
 ```
 
 ### Getting Help

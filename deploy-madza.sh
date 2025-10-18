@@ -282,6 +282,69 @@ test_deployment() {
     success "Deployment testing completed"
 }
 
+# Deploy Lambda AI services (optional)
+deploy_lambda_services() {
+    log "Deploying Lambda AI services for advanced chat functionality..."
+    
+    # Check if user wants to deploy Lambda services
+    read -p "Deploy Lambda AI services for advanced chat? (y/N): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        warning "Skipping Lambda deployment. You can deploy later using: cd agenzia-deploy && ./deploy.sh"
+        return
+    fi
+    
+    # Check if Node.js is available
+    if ! command -v node &> /dev/null; then
+        warning "Node.js not found. Skipping Lambda deployment."
+        warning "Install Node.js and run: cd agenzia-deploy && ./deploy.sh"
+        return
+    fi
+    
+    # Navigate to Lambda deployment directory
+    if [ ! -d "agenzia-deploy" ]; then
+        warning "Lambda deployment directory not found. Skipping Lambda deployment."
+        return
+    fi
+    
+    cd agenzia-deploy
+    
+    # Deploy Lambda services
+    log "Installing Lambda dependencies..."
+    npm install --silent
+    
+    log "Packaging Lambda function..."
+    python ./bin/package_for_lambda.py
+    
+    log "Deploying Lambda stack..."
+    npx cdk bootstrap --require-approval never
+    npx cdk deploy --require-approval never
+    
+    # Get Lambda outputs
+    LAMBDA_API_URL=$(aws cloudformation describe-stacks \
+        --stack-name AgentLambdaStack \
+        --query 'Stacks[0].Outputs[?OutputKey==`ChatEndpoint`].OutputValue' \
+        --output text \
+        --region $AWS_REGION 2>/dev/null || echo "")
+    
+    if [ -n "$LAMBDA_API_URL" ]; then
+        success "Lambda AI services deployed successfully"
+        echo "Lambda Chat API: $LAMBDA_API_URL"
+        
+        # Update backend with Lambda URL
+        log "Configuring backend with Lambda integration..."
+        ssh -i ~/.ssh/$KEY_PAIR_NAME.pem ec2-user@$BACKEND_IP "cd /opt/madza/backend && echo 'AI_LAMBDA_URL=$LAMBDA_API_URL' >> .env"
+        ssh -i ~/.ssh/$KEY_PAIR_NAME.pem ec2-user@$BACKEND_IP 'sudo systemctl restart madza-backend'
+        
+        success "Backend configured with Lambda integration"
+    else
+        warning "Lambda deployment may have failed. Check CloudFormation console."
+    fi
+    
+    # Return to project root
+    cd ..
+}
+
 # Display final information
 display_summary() {
     log "Deployment Summary"
@@ -289,14 +352,30 @@ display_summary() {
     echo "Frontend URL: $FRONTEND_URL"
     echo "Backend API: http://$BACKEND_IP:5000"
     echo "Backend Health: http://$BACKEND_IP:5000/api/health"
+    
+    if [ -n "$LAMBDA_API_URL" ]; then
+        echo "Lambda Chat API: $LAMBDA_API_URL"
+    fi
+    
     echo ""
     echo "You can now:"
     echo "1. Open the frontend URL in your browser"
     echo "2. Test patient registration"
     echo "3. Test AI analysis features"
     echo "4. Monitor the backend API"
+    
+    if [ -n "$LAMBDA_API_URL" ]; then
+        echo "5. Test advanced chat functionality"
+    fi
+    
     echo ""
     success "Madza AI Healthcare platform is now deployed and ready!"
+    
+    if [ -z "$LAMBDA_API_URL" ]; then
+        echo ""
+        warning "To deploy Lambda AI services later, run:"
+        echo "cd agenzia-deploy && ./deploy.sh"
+    fi
 }
 
 # Main deployment function
@@ -311,6 +390,7 @@ main() {
     configure_iam
     configure_backend
     test_deployment
+    deploy_lambda_services
     display_summary
 }
 

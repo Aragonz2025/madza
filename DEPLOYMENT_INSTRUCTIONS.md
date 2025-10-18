@@ -239,7 +239,95 @@ curl -s -I $FRONTEND_URL
 echo "✅ Deployment testing completed"
 ```
 
-### Step 8: Verify AI Services
+### Step 8: Deploy Lambda AI Services (Chat Functionality)
+
+```bash
+# Navigate to Lambda deployment directory
+cd $PROJECT_DIR/agenzia-deploy
+
+# Install Node.js dependencies for CDK
+npm install
+
+# Install Python dependencies for Lambda
+pip install -r requirements.txt
+
+# Package Lambda function and dependencies
+python ./bin/package_for_lambda.py
+
+# Bootstrap CDK environment (if not already done)
+npx cdk bootstrap
+
+# Deploy Lambda stack
+npx cdk deploy --require-approval never
+
+# Get Lambda function outputs
+LAMBDA_API_URL=$(aws cloudformation describe-stacks \
+    --stack-name AgentLambdaStack \
+    --query 'Stacks[0].Outputs[?OutputKey==`ChatEndpoint`].OutputValue' \
+    --output text \
+    --region $AWS_REGION)
+
+LAMBDA_FUNCTION_NAME=$(aws cloudformation describe-stacks \
+    --stack-name AgentLambdaStack \
+    --query 'Stacks[0].Outputs[?OutputKey==`FunctionName`].OutputValue' \
+    --output text \
+    --region $AWS_REGION)
+
+echo "✅ Lambda AI services deployed"
+echo "Lambda API URL: $LAMBDA_API_URL"
+echo "Lambda Function: $LAMBDA_FUNCTION_NAME"
+
+# Return to project root
+cd $PROJECT_DIR
+```
+
+### Step 9: Configure Backend with Lambda Integration
+
+```bash
+# Update backend environment with Lambda URL
+ssh -i ~/.ssh/$KEY_PAIR_NAME.pem ec2-user@$BACKEND_IP 'cd /opt/madza/backend && cat >> .env << EOF
+AI_LAMBDA_URL=$LAMBDA_API_URL
+LAMBDA_FUNCTION_NAME=$LAMBDA_FUNCTION_NAME
+EOF'
+
+# Restart backend service to pick up new environment variables
+ssh -i ~/.ssh/$KEY_PAIR_NAME.pem ec2-user@$BACKEND_IP 'sudo systemctl restart madza-backend'
+
+echo "✅ Backend configured with Lambda integration"
+```
+
+### Step 10: Test Lambda AI Services
+
+```bash
+# Test Lambda function directly
+echo "Testing Lambda function directly..."
+aws lambda invoke \
+    --function-name $LAMBDA_FUNCTION_NAME \
+    --region $AWS_REGION \
+    --cli-binary-format raw-in-base64-out \
+    --payload '{"prompt": "What is medical insurance claim processing?"}' \
+    lambda-test-output.json
+
+# Display Lambda response
+echo "Lambda Response:"
+jq -r '.' lambda-test-output.json
+
+# Test Lambda via API Gateway
+echo "Testing Lambda via API Gateway..."
+curl -s -X POST $LAMBDA_API_URL \
+    -H "Content-Type: application/json" \
+    -d '{"prompt": "How do I process a healthcare claim?"}' | jq
+
+# Test chatbot integration through backend
+echo "Testing chatbot integration..."
+curl -s -X POST http://$BACKEND_IP:5000/api/chatbot/query \
+    -H "Content-Type: application/json" \
+    -d '{"message": "How does the AI analysis work for patient registration?"}' | jq
+
+echo "✅ Lambda AI services verified"
+```
+
+### Step 11: Verify Complete AI Services
 
 ```bash
 # Test AI analysis
@@ -256,7 +344,78 @@ curl -s -X POST http://$BACKEND_IP:5000/api/patient/register \
         "insuranceProvider": "Aetna"
     }' | jq '.aiAnalysis'
 
-echo "✅ AI services verified"
+echo "✅ Complete AI services verified"
+```
+
+## 🔧 Lambda AI Services Management
+
+### Deploy Lambda Services Only
+```bash
+# Navigate to Lambda deployment
+cd agenzia-deploy
+
+# Deploy Lambda stack
+./deploy.sh
+
+# Get Lambda outputs
+aws cloudformation describe-stacks \
+    --stack-name AgentLambdaStack \
+    --query 'Stacks[0].Outputs' \
+    --region $AWS_REGION
+```
+
+### Update Lambda Function
+```bash
+# Update Lambda code
+cd agenzia-deploy
+python ./bin/package_for_lambda.py
+npx cdk deploy --require-approval never
+```
+
+### Test Lambda Functions
+```bash
+# Test research workflow
+aws lambda invoke \
+    --function-name AgentFunction \
+    --region $AWS_REGION \
+    --cli-binary-format raw-in-base64-out \
+    --payload '{"prompt": "What is medical insurance claim processing?", "mode": "research"}' \
+    research-test.json
+
+# Test meta-tooling workflow
+aws lambda invoke \
+    --function-name AgentFunction \
+    --region $AWS_REGION \
+    --cli-binary-format raw-in-base64-out \
+    --payload '{"prompt": "create a tool that reverses text", "mode": "meta_tooling"}' \
+    meta-test.json
+
+# Test chatbot via API Gateway
+curl -X POST https://your-api-gateway-url/chat \
+    -H "Content-Type: application/json" \
+    -d '{"prompt": "How do I register a patient?"}'
+```
+
+### Lambda Troubleshooting
+```bash
+# Check Lambda function logs
+aws logs describe-log-groups --log-group-name-prefix "/aws/lambda/AgentFunction"
+
+# Get recent Lambda logs
+aws logs filter-log-events \
+    --log-group-name "/aws/lambda/AgentFunction" \
+    --start-time $(date -d '1 hour ago' +%s)000
+
+# Check Lambda function configuration
+aws lambda get-function --function-name AgentFunction --region $AWS_REGION
+
+# Test Lambda permissions
+aws lambda invoke \
+    --function-name AgentFunction \
+    --region $AWS_REGION \
+    --cli-binary-format raw-in-base64-out \
+    --payload '{"prompt": "test"}' \
+    test-output.json
 ```
 
 ## 🔧 Troubleshooting Commands
@@ -362,9 +521,9 @@ cd aws-deployment/cost-optimized-deployment/scripts
 
 ## 🧹 Cleanup Commands
 
-### Remove Stack
+### Remove Main Stack
 ```bash
-# Delete CloudFormation stack
+# Delete main CloudFormation stack
 aws cloudformation delete-stack \
     --stack-name $STACK_NAME \
     --region $AWS_REGION
@@ -374,7 +533,22 @@ aws cloudformation wait stack-delete-complete \
     --stack-name $STACK_NAME \
     --region $AWS_REGION
 
-echo "✅ Stack deleted"
+echo "✅ Main stack deleted"
+```
+
+### Remove Lambda Stack
+```bash
+# Delete Lambda CloudFormation stack
+aws cloudformation delete-stack \
+    --stack-name AgentLambdaStack \
+    --region $AWS_REGION
+
+# Wait for deletion
+aws cloudformation wait stack-delete-complete \
+    --stack-name AgentLambdaStack \
+    --region $AWS_REGION
+
+echo "✅ Lambda stack deleted"
 ```
 
 ### Remove IAM Resources
@@ -425,7 +599,9 @@ After successful deployment, you will have:
 - **Backend**: Flask API running on EC2 at `http://$BACKEND_IP:5000`
 - **Database**: SQLite database on EC2
 - **AI Services**: AWS Bedrock integration for AI analysis
-- **Cost**: ~$5-10/month (Free Tier eligible)
+- **Lambda AI**: Serverless AI functions for chat and advanced workflows
+- **API Gateway**: RESTful endpoints for Lambda functions
+- **Cost**: ~$8-15/month (Free Tier eligible)
 
 ## 🎯 Next Steps
 
