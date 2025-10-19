@@ -1,177 +1,166 @@
-# Agent Lambda Deployment
+# Medical Claims RAG Agent
 
-This project deploys Strands Agents SDK agents to AWS Lambda with dual agentic workflows:
+A comprehensive AWS Lambda-based agent system specialized for medical insurance claims processing with RAG (Retrieval-Augmented Generation) integration using AWS Bedrock Knowledge Base.
 
-1. **Research Workflow**: Multi-agent pipeline (Researcher → Analyst → Writer) for web research and fact-checking
-2. **Meta-tooling Workflow**: Dynamic tool creation and usage capabilities
+## Features
+
+- **Medical Claims Specialization**: Expert knowledge in CPT codes, ICD-10 codes, insurance policies, and billing procedures
+- **RAG Integration**: Uses AWS Bedrock Knowledge Base with medical billing documents for accurate, up-to-date information
+- **Dual Agent Workflows**: Research workflow for medical claims and meta-tooling workflow for dynamic tool creation
+- **AWS Bedrock Integration**: Leverages AWS Bedrock models for intelligent responses
+- **Scalable Architecture**: Deployed as AWS Lambda with CDK for infrastructure as code
 
 ## Architecture
 
-- **Local Development**: Uses Ollama for testing
-- **AWS Deployment**: Uses AWS Bedrock (gpt-oss-20b model)
-- **Automatic Detection**: Environment-based model configuration
-
-## Prerequisites
-
-- Node.js 18+ and npm
-- Python 3.12+
-- AWS CLI configured
-- AWS CDK CLI installed (`npm install -g aws-cdk`)
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────────┐
+│   User Query    │───▶│  Lambda Function │───▶│  Bedrock Knowledge  │
+│                 │    │  (Agent Handler) │    │      Base (RAG)     │
+└─────────────────┘    └──────────────────┘    └─────────────────────┘
+                              │                           │
+                              ▼                           ▼
+                       ┌──────────────────┐    ┌─────────────────────┐
+                       │ Strands Agents   │    │   Medical Documents │
+                       │ (Research/Meta)  │    │ (CPT, ICD-10, etc.) │
+                       └──────────────────┘    └─────────────────────┘
+```
 
 ## Quick Start
 
-### 1. Install Dependencies
+1. **Prerequisites Setup**
+   ```bash
+   # Install Node.js, Python 3.12, AWS CLI, and CDK
+   npm install -g aws-cdk
+   ```
 
-```bash
-# Install Node.js dependencies
-npm install
+2. **Clone and Setup**
+   ```bash
+   cd medical-claims-rag-agent
+   npm install
+   pip install -r requirements.txt
+   ```
 
-# Install Python dependencies
-pip install -r requirements.txt
-```
+3. **Configure AWS**
+   ```bash
+   aws configure
+   # Set your AWS credentials and region (us-east-1 recommended)
+   ```
 
-### 2. Deploy to AWS
+4. **Deploy Infrastructure**
+   ```bash
+   ./deploy.sh
+   ```
 
-```bash
-# One-command deployment
-./deploy.sh
-```
-
-Or manually:
-
-```bash
-# Package Python code
-python ./bin/package_for_lambda.py
-
-# Bootstrap CDK (first time only)
-npx cdk bootstrap
-
-# Deploy
-npx cdk deploy
-```
-
-### 3. Test the Deployment
-
-```bash
-# Run all tests
-./test_lambda.sh
-
-# Or test manually
-aws lambda invoke --function-name AgentFunction \
-  --region us-east-1 \
-  --cli-binary-format raw-in-base64-out \
-  --payload '{"prompt": "What are quantum computers?"}' \
-  output.json
-
-jq -r '.' ./output.json
-```
-
-## Local Development
-
-For local testing with Ollama:
-
-```bash
-# Set environment variables
-export USE_OLLAMA=true
-export OLLAMA_BASE_URL=http://localhost:11434
-export OLLAMA_MODEL_ID=llama3.2:latest
-
-# Run local tests
-python local_test_ollama.py
-```
-
-## Usage Examples
-
-### Research Workflow
-
-```json
-{
-  "prompt": "What are quantum computers?"
-}
-```
-
-```json
-{
-  "prompt": "Fact check: The Earth is flat"
-}
-```
-
-### Meta-tooling Workflow
-
-```json
-{
-  "prompt": "create a tool that reverses text"
-}
-```
-
-```json
-{
-  "prompt": "reverse hello world",
-  "mode": "meta_tooling"
-}
-```
-
-### Explicit Mode Selection
-
-```json
-{
-  "prompt": "Tell me about AI",
-  "mode": "research"
-}
-```
-
-## Configuration
-
-### Environment Variables
-
-- `USE_OLLAMA`: Set to "true" for local Ollama usage
-- `OLLAMA_BASE_URL`: Ollama server URL (default: http://localhost:11434)
-- `OLLAMA_MODEL_ID`: Ollama model name (default: llama3.2:latest)
-- `BEDROCK_MODEL_ID`: AWS Bedrock model ID (default: gpt-oss-20b)
-
-### AWS Permissions
-
-The Lambda function requires these permissions:
-- `bedrock:InvokeModel`
-- `bedrock:InvokeModelWithResponseStream`
+5. **Test the System**
+   ```bash
+   node tests/test_lambda_client.js "What are the CPT codes for MRI procedures?"
+   ```
 
 ## Project Structure
 
 ```
-├── agent_handler.py          # Main Lambda handler
-├── lambda/                   # Lambda deployment code
-├── lib/AgentLambdaStack.ts   # CDK infrastructure
-├── bin/                      # Scripts and CDK app
-├── packaging/                # Generated deployment packages
-├── deploy.sh                 # Deployment script
-├── test_lambda.sh           # Testing script
-└── local_test_ollama.py     # Local development testing
+medical-claims-rag-agent/
+├── README.md                    # This file
+├── SETUP.md                     # Detailed setup instructions
+├── package.json                 # Node.js dependencies
+├── package-lock.json           # Locked dependencies
+├── requirements.txt            # Python dependencies
+├── cdk.json                    # CDK configuration
+├── tsconfig.json              # TypeScript configuration
+├── deploy.sh                  # Deployment script
+├── .gitignore                 # Git ignore rules
+├── agent_handler.py           # Main agent logic (copied to lambda/)
+├── bin/
+│   ├── app.ts                 # CDK app entry point
+│   └── package_for_lambda.py  # Lambda packaging script
+├── lib/
+│   └── agent-lambda-stack.ts  # CDK stack definition
+├── lambda/
+│   └── agent_handler.py       # Lambda function code
+├── tests/
+│   └── test_lambda_client.js  # Test client
+├── docs/
+│   ├── RAG_INTEGRATION.md     # RAG setup guide
+│   └── BEDROCK_KB_SETUP.md    # Knowledge Base setup
+└── packaging/                 # Generated deployment packages
+    ├── app.zip
+    └── dependencies.zip
 ```
 
-## Workflow Detection
+## Environment Variables
 
-The system automatically detects which workflow to use based on keywords:
+The Lambda function uses these environment variables:
 
-**Research Keywords**: research, fact check, verify, what is, explain, tell me about
-**Meta-tooling Keywords**: create a tool, make a tool, reverse, calculate, process
+- `BEDROCK_MODEL_ID`: Bedrock model to use (default: "anthropic.claude-3-sonnet-20240229-v1:0")
+- `ENABLE_RAG`: Enable RAG integration ("true"/"false")
+- `KNOWLEDGE_BASE_ID`: AWS Bedrock Knowledge Base ID
+- `USE_OLLAMA`: Use local Ollama instead of Bedrock ("true"/"false")
+
+## Usage Examples
+
+### Medical Claims Queries
+```bash
+# CPT code lookup
+node tests/test_lambda_client.js "What are the CPT codes for cardiac catheterization?"
+
+# Insurance coverage
+node tests/test_lambda_client.js "What are Medicare coverage requirements for MRI procedures?"
+
+# Billing requirements
+node tests/test_lambda_client.js "What documentation is needed for prior authorization?"
+```
+
+### Meta-Tooling Queries
+```bash
+# Create custom tools
+node tests/test_lambda_client.js "create a tool that calculates insurance deductibles" meta_tooling
+```
+
+## Development
+
+### Local Testing
+```bash
+# Package the Lambda function
+python bin/package_for_lambda.py
+
+# Deploy updates
+npx cdk deploy
+
+# Test specific functionality
+node tests/test_lambda_client.js "your query here"
+```
+
+### Adding Medical Documents
+1. Upload documents to the S3 bucket created by the Knowledge Base
+2. The Knowledge Base will automatically ingest and index new documents
+3. Test retrieval with medical queries
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Model not found**: Ensure the Bedrock model ID is correct and available in your region
-2. **Timeout errors**: Increase Lambda timeout in `AgentLambdaStack.ts`
-3. **Memory errors**: Increase Lambda memory size in `AgentLambdaStack.ts`
+1. **Lambda timeout**: Increase timeout in `lib/agent-lambda-stack.ts`
+2. **RAG not working**: Check `KNOWLEDGE_BASE_ID` environment variable
+3. **Deployment fails**: Verify AWS credentials and permissions
+4. **Package too large**: Remove unnecessary dependencies in `requirements.txt`
 
-### Logs
+### Debug Mode
+Enable debug logging by checking CloudWatch logs for the Lambda function.
 
-View Lambda logs:
-```bash
-aws logs tail /aws/lambda/AgentFunction --follow
-```
+## Contributing
 
-## Cost Optimization
+1. Fork the repository
+2. Create a feature branch
+3. Make changes and test thoroughly
+4. Submit a pull request
 
-- Uses ARM64 architecture for better price/performance
-- Lambda layers separate dependencies from app code
-- Configurable timeout and memory settings
+## License
+
+MIT License - see LICENSE file for details.
+
+## Support
+
+For issues and questions:
+1. Check the troubleshooting section
+2. Review CloudWatch logs
+3. Consult the setup documentation in `docs/`

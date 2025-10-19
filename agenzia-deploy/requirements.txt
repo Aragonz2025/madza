@@ -1,3 +1,5 @@
-strands-agents
-strands-agents-tools
-requests
+strands-agents>=1.13.0
+strands-agents-tools>=0.2.12
+requests>=2.32.0
+boto3>=1.40.0
+botocore>=1.40.0
