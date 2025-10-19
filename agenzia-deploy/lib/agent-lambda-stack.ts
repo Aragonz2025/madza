@@ -68,31 +68,70 @@ export class AgentLambdaStack extends cdk.Stack {
       }
     });
 
-    // Create API Gateway
+    // Create API Gateway with API Key authentication
     const api = new apigateway.RestApi(this, 'AgentApi', {
       restApiName: 'Medical Claims RAG Agent API',
       description: 'API for Medical Claims RAG Agent system',
       defaultCorsPreflightOptions: {
-        allowOrigins: apigateway.Cors.ALL_ORIGINS,
-        allowMethods: apigateway.Cors.ALL_METHODS,
+        allowOrigins: ['https://your-frontend-domain.com'], // Restrict to your domain
+        allowMethods: ['POST', 'OPTIONS'],
         allowHeaders: ['Content-Type', 'X-Amz-Date', 'Authorization', 'X-Api-Key']
       }
     });
+
+    // Create API Key
+    const apiKey = new apigateway.ApiKey(this, 'AgentApiKey', {
+      description: 'API Key for Medical Claims RAG Agent',
+      apiKeyName: 'madza-agent-api-key'
+    });
+
+    // Create Usage Plan
+    const usagePlan = new apigateway.UsagePlan(this, 'AgentUsagePlan', {
+      name: 'MadzaAgentUsagePlan',
+      description: 'Usage plan for Medical Claims RAG Agent',
+      apiStages: [{
+        api: api,
+        stage: api.deploymentStage
+      }],
+      throttle: {
+        rateLimit: 100, // 100 requests per second
+        burstLimit: 200 // 200 burst capacity
+      },
+      quota: {
+        limit: 1000, // 1000 requests per day
+        period: apigateway.Period.DAY
+      }
+    });
+
+    // Associate API Key with Usage Plan
+    usagePlan.addApiKey(apiKey);
 
     // Create Lambda integration
     const lambdaIntegration = new apigateway.LambdaIntegration(agentFunction, {
       requestTemplates: { 'application/json': '{ "statusCode": "200" }' }
     });
 
-    // Add chat endpoint
+    // Add chat endpoint with API Key requirement
     const chatResource = api.root.addResource('chat');
-    chatResource.addMethod('POST', lambdaIntegration);
+    chatResource.addMethod('POST', lambdaIntegration, {
+      apiKeyRequired: true, // Require API key for all requests
+      methodResponses: [{
+        statusCode: '200',
+        responseParameters: {
+          'method.response.header.Access-Control-Allow-Headers': true,
+          'method.response.header.Access-Control-Allow-Methods': true,
+          'method.response.header.Access-Control-Allow-Origin': true
+        }
+      }]
+    });
+    
+    // Add OPTIONS method for CORS (no API key required)
     chatResource.addMethod('OPTIONS', new apigateway.MockIntegration({
       integrationResponses: [{
         statusCode: '200',
         responseParameters: {
           'method.response.header.Access-Control-Allow-Headers': "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-          'method.response.header.Access-Control-Allow-Origin': "'*'",
+          'method.response.header.Access-Control-Allow-Origin': "'https://your-frontend-domain.com'",
           'method.response.header.Access-Control-Allow-Methods': "'OPTIONS,POST'"
         }
       }],
@@ -135,6 +174,16 @@ export class AgentLambdaStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'AgentApiEndpoint', {
       value: api.url,
       description: 'API Gateway endpoint URL'
+    });
+
+    new cdk.CfnOutput(this, 'ApiKeyId', {
+      value: apiKey.keyId,
+      description: 'API Key ID for authentication'
+    });
+
+    new cdk.CfnOutput(this, 'ApiKeyValue', {
+      value: apiKey.keyValue,
+      description: 'API Key Value - KEEP THIS SECRET!'
     });
   }
 }
